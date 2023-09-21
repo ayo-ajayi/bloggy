@@ -3,7 +3,6 @@ package user
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -29,9 +28,9 @@ type UserService struct {
 type TokenMgr interface {
 	SaveToken(userId string, td *TokenDetails) error
 	GenerateToken(userId string) (*TokenDetails, error)
-	FindToken(filter interface{}, opts ...*options.FindOneOptions)(*AccessDetails, error)
+	FindToken(filter interface{}, opts ...*options.FindOneOptions) (*AccessDetails, error)
 	IsExists(filter interface{}, opts ...*options.FindOneOptions) (bool, error)
-	DeleteToken(filter interface{}, opts ...*options.DeleteOptions) error 
+	DeleteToken(filter interface{}, opts ...*options.DeleteOptions) error
 }
 
 type UserRepository interface {
@@ -65,7 +64,6 @@ func (us *UserService) Login(ctx *gin.Context) (string, error) {
 	state := generateRandomState()
 	session, err := us.store.New(ctx.Request, "session-name")
 	if err != nil {
-		log.Println(err, "line 54")
 		return "", err
 	}
 	session.Values["state"] = state
@@ -125,7 +123,7 @@ type GoogleLoginResponse struct {
 }
 
 func (us *UserService) GenerateAccessToken(userId string) (*TokenDetails, error) {
-	td, err:= us.tokenMgr.GenerateToken(userId)
+	td, err := us.tokenMgr.GenerateToken(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +131,7 @@ func (us *UserService) GenerateAccessToken(userId string) (*TokenDetails, error)
 }
 
 func (us *UserService) SaveAccessToken(userId string, td *TokenDetails) error {
-	exists, err:=us.tokenMgr.IsExists(bson.M{"user_id": userId})
+	exists, err := us.tokenMgr.IsExists(bson.M{"user_id": userId})
 	if err != nil {
 		return err
 	}
@@ -160,7 +158,7 @@ func (us *UserService) SaveUser(googleLoginResponse *GoogleLoginResponse) error 
 		CreatedAt:  time.Now(),
 		UpdatedAt:  time.Now(),
 	}
-	exists, err:=us.repo.IsExists(bson.M{"email": user.Email})
+	exists, err := us.repo.IsExists(bson.M{"email": user.Email})
 	if err != nil {
 		return err
 	}
@@ -174,11 +172,10 @@ func (us *UserService) SaveUser(googleLoginResponse *GoogleLoginResponse) error 
 	return nil
 }
 
-func (us *UserService)Logout(accessUuid string) error {
+func (us *UserService) Logout(accessUuid string) error {
 	return us.tokenMgr.DeleteToken(bson.M{"access_uuid": accessUuid})
 }
 
-
-func(us *UserService) Profile(userId string) (*User, error) {
+func (us *UserService) Profile(userId string) (*User, error) {
 	return us.repo.GetUser(bson.M{"_id": userId})
 }

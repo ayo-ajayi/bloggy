@@ -14,7 +14,7 @@ func NewUserRepo(collection *mongo.Collection) *UserRepo {
 	return &UserRepo{collection}
 }
 
-func (repo *UserRepo)IsExists(filter interface{}, opts ...*options.FindOneOptions) (bool, error) {
+func (repo *UserRepo) IsExists(filter interface{}, opts ...*options.FindOneOptions) (bool, error) {
 	ctx, cancel := db.DBReqContext(5)
 	defer cancel()
 	err := repo.collection.FindOne(ctx, filter, opts...).Err()
@@ -32,7 +32,7 @@ func (repo *UserRepo) CreateUser(user *User) (*mongo.InsertOneResult, error) {
 	defer cancel()
 	return repo.collection.InsertOne(ctx, user)
 }
-func(repo *UserRepo)GetUser(filter interface{}, opts ...*options.FindOneOptions)(*User, error){
+func (repo *UserRepo) GetUser(filter interface{}, opts ...*options.FindOneOptions) (*User, error) {
 	ctx, cancel := db.DBReqContext(20)
 	defer cancel()
 	var user User
@@ -43,7 +43,7 @@ func(repo *UserRepo)GetUser(filter interface{}, opts ...*options.FindOneOptions)
 	return &user, nil
 }
 
-func(repo *UserRepo)UpdateUser(filter interface{}, update interface{}, opts ...*options.UpdateOptions)(*mongo.UpdateResult, error){
+func (repo *UserRepo) UpdateUser(filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
 	ctx, cancel := db.DBReqContext(20)
 	defer cancel()
 	return repo.collection.UpdateOne(ctx, filter, update, opts...)

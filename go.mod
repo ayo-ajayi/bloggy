@@ -7,12 +7,16 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/google/uuid v1.3.1
 	github.com/gorilla/sessions v1.2.1
+	github.com/gosimple/slug v1.13.1
 	github.com/joho/godotenv v1.5.1
 	go.mongodb.org/mongo-driver v1.12.1
 	golang.org/x/oauth2 v0.12.0
 )
 
-require github.com/chenzhuoyu/iasm v0.9.0 // indirect
+require (
+	github.com/chenzhuoyu/iasm v0.9.0 // indirect
+	github.com/gosimple/unidecode v1.0.1 // indirect
+)
 
 require (
 	cloud.google.com/go/compute v1.23.0 // indirect

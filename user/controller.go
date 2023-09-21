@@ -19,8 +19,8 @@ type UserServices interface {
 	Callback(ctx *gin.Context) (*GoogleLoginResponse, error)
 	SaveAccessToken(userId string, td *TokenDetails) error
 	GenerateAccessToken(userId string) (*TokenDetails, error)
-	SaveUser(googleLoginResponse *GoogleLoginResponse) error 
-	Logout(accessUuid string) error 
+	SaveUser(googleLoginResponse *GoogleLoginResponse) error
+	Logout(accessUuid string) error
 	Profile(userId string) (*User, error)
 }
 
@@ -39,7 +39,7 @@ func (uc *UserController) Callback(c *gin.Context) {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
-	if err:=uc.service.SaveUser(content);err != nil {
+	if err := uc.service.SaveUser(content); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
@@ -66,7 +66,7 @@ type LoginResponse struct {
 	GoogleLoginResponse
 }
 
-func(uc *UserController)Logout(c *gin.Context) {
+func (uc *UserController) Logout(c *gin.Context) {
 	accessUuid := c.GetString("access_uuid")
 	if err := uc.service.Logout(accessUuid); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
@@ -75,8 +75,8 @@ func(uc *UserController)Logout(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "Successfully logged out"})
 }
 
-func (uc *UserController)Profile(c *gin.Context) {
-	userid:=c.MustGet("user_id").(string)
+func (uc *UserController) Profile(c *gin.Context) {
+	userid := c.MustGet("user_id").(string)
 	user, err := uc.service.Profile(userid)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})

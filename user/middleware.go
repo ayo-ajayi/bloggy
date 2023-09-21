@@ -21,7 +21,9 @@ type MiddlewareTokenManager interface {
 	FindToken(filter interface{}, opts ...*options.FindOneOptions) (*AccessDetails, error)
 	ExtractTokenMetadata(token *jwt.Token) (*AccessDetails, error)
 }
-type MiddlewareUserRepo interface{}
+type MiddlewareUserRepo interface{
+	GetUser(filter interface{}, opts ...*options.FindOneOptions) (*User, error)
+}
 
 func NewMiddleware(accessTokenSecret string, userRepo MiddlewareUserRepo, tokenManager MiddlewareTokenManager) *Middleware {
 	return &Middleware{accessTokenSecret, userRepo, tokenManager}
@@ -76,4 +78,31 @@ func extractToken(r *http.Request) string {
 		return ""
 	}
 	return ttoken[1]
+}
+
+
+
+func (m *Middleware) Authorization(roles []Role) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userId:= c.MustGet("user_id").(string)
+		user, err := m.userRepo.GetUser(bson.M{
+			"_id": userId,
+		})
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": gin.H{"message": err.Error() + ": you are not authorized to acess this resource"}})
+			return
+		}
+		allowed := false
+		for _, role := range roles {
+			if role == user.Role {
+				allowed = true
+				break
+			}
+		}
+		if !allowed {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": gin.H{"message": err.Error() + ": you are not authorized to acess this resource"}})
+			return
+		}
+		c.Next()
+	}
 }

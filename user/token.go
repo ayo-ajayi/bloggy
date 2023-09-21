@@ -2,7 +2,6 @@ package user
 
 import (
 	"errors"
-	"log"
 	"time"
 
 	"github.com/ayo-ajayi/bloggy/db"
@@ -39,6 +38,11 @@ func NewTokenManager(accessTokenSecret string, accessTokenValidaityInHours int64
 		accessTokenValidaityInHours: accessTokenValidaityInHours,
 		collection:                  collection,
 	}
+
+	return tm
+}
+
+func InitTokenExpiryIndex(collection *mongo.Collection) error {
 	indexModel := mongo.IndexModel{
 		Keys: bson.M{
 			"expires_at": 1}, Options: options.Index().SetExpireAfterSeconds(0),
@@ -47,9 +51,9 @@ func NewTokenManager(accessTokenSecret string, accessTokenValidaityInHours int64
 	defer cancel()
 	_, err := collection.Indexes().CreateOne(ctx, indexModel)
 	if err != nil {
-		log.Println("Error creating TTL index for token collection: ", err.Error())
+		return errors.New("Error creating TTL index for token collection: " + err.Error())
 	}
-	return tm
+	return nil
 }
 
 func (tm *TokenManager) GenerateToken(userId string) (*TokenDetails, error) {
