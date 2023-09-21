@@ -21,7 +21,7 @@ type MiddlewareTokenManager interface {
 	FindToken(filter interface{}, opts ...*options.FindOneOptions) (*AccessDetails, error)
 	ExtractTokenMetadata(token *jwt.Token) (*AccessDetails, error)
 }
-type MiddlewareUserRepo interface{
+type MiddlewareUserRepo interface {
 	GetUser(filter interface{}, opts ...*options.FindOneOptions) (*User, error)
 }
 
@@ -33,35 +33,35 @@ func (m *Middleware) Authentication() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := extractToken(c.Request)
 		if token == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": gin.H{"message": "unauthorized"}})
 			c.Abort()
 			return
 		}
 		jwtToken, err := ValidateToken(token, m.accessTokenSecret)
 		if err != nil {
 			if errors.Is(err, jwt.ErrSignatureInvalid) {
-				c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+				c.JSON(http.StatusUnauthorized, gin.H{"error": gin.H{"message": "unauthorized"}})
 				c.Abort()
 				return
 			}
 			if errors.Is(err, jwt.ErrTokenExpired) {
-				c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+				c.JSON(http.StatusUnauthorized, gin.H{"error": gin.H{"message": "unauthorized"}})
 				c.Abort()
 				return
 			}
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": err.Error()}})
 			c.Abort()
 			return
 		}
 		td, err := m.tokenManager.ExtractTokenMetadata(jwtToken)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "unauthorized"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "unauthorized"}})
 			c.Abort()
 			return
 		}
 		_, err = m.tokenManager.FindToken(bson.M{"access_uuid": td.AccessUuid})
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "unauthorized"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "unauthorized"}})
 			c.Abort()
 			return
 		}
@@ -80,11 +80,9 @@ func extractToken(r *http.Request) string {
 	return ttoken[1]
 }
 
-
-
 func (m *Middleware) Authorization(roles []Role) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userId:= c.MustGet("user_id").(string)
+		userId := c.MustGet("user_id").(string)
 		user, err := m.userRepo.GetUser(bson.M{
 			"_id": userId,
 		})

@@ -239,7 +239,8 @@ func (service *BlogService) unlikeComment(commentId primitive.ObjectID, userId s
 	var updatedLikes []Like
 	for _, like := range comment.Likes {
 		if like.UserId == userId {
-			currentlylikesComment = true}else{
+			currentlylikesComment = true
+		} else {
 			updatedLikes = append(updatedLikes, like)
 		}
 	}

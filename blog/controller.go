@@ -37,7 +37,7 @@ func (controller *BlogController) CreateBlogPost(c *gin.Context) {
 		Description string `json:"description" binding:"required"`
 	}{}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
 	bp := &BlogPost{
@@ -47,7 +47,7 @@ func (controller *BlogController) CreateBlogPost(c *gin.Context) {
 	}
 
 	if err := controller.service.CreateBlogPost(bp); err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
 	c.JSON(200, gin.H{"message": "Blog post created successfully"})
@@ -56,7 +56,7 @@ func (controller *BlogController) CreateBlogPost(c *gin.Context) {
 func (controller *BlogController) GetBlogPosts(c *gin.Context) {
 	posts, err := controller.service.GetBlogPosts()
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
 	c.JSON(200, gin.H{"data": posts})
@@ -65,12 +65,12 @@ func (controller *BlogController) GetBlogPosts(c *gin.Context) {
 func (controller *BlogController) Search(c *gin.Context) {
 	q := c.Query("query")
 	if q == "" {
-		c.JSON(400, gin.H{"error": "query param is required"})
+		c.JSON(400, gin.H{"error": gin.H{"message": "query param is required"}})
 		return
 	}
 	bp, err := controller.service.SearchBlogPosts(q)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
 	c.JSON(200, gin.H{"data": bp})
@@ -80,7 +80,7 @@ func (controller *BlogController) GetBlogPost(c *gin.Context) {
 	id := c.Param("id")
 	post, err := controller.service.GetBlogPost(id)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
 	c.JSON(200, gin.H{"data": post})
@@ -90,7 +90,7 @@ func (controller *BlogController) UpdateBlogPost(c *gin.Context) {
 	id := c.Param("id")
 	post, err := controller.service.GetBlogPost(id)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
 	req := struct {
@@ -99,14 +99,14 @@ func (controller *BlogController) UpdateBlogPost(c *gin.Context) {
 		Description string `json:"description" binding:"required"`
 	}{}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
 	post.Title = req.Title
 	post.Content = req.Content
 	post.Description = req.Description
 	if err := controller.service.UpdateBlogPost(post); err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
 	c.JSON(200, gin.H{"message": "Blog post updated successfully"})
@@ -115,7 +115,7 @@ func (controller *BlogController) UpdateBlogPost(c *gin.Context) {
 func (controller *BlogController) DeleteBlogPost(c *gin.Context) {
 	id := c.Param("id")
 	if err := controller.service.DeleteBlogPost(id); err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
 	c.JSON(200, gin.H{"message": "Blog post deleted successfully"})
@@ -128,11 +128,11 @@ func (controller *BlogController) LikeOrUnlikePost(c *gin.Context) {
 		Option PostOption `json:"option" binding:"required"`
 	}{}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
 	if err := controller.service.LikeOrUnlikePost(req.ID, userid, req.Option); err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
 	if req.Option == LikePost {
@@ -149,11 +149,11 @@ func (controller *BlogController) LikeOrUnlikeComment(c *gin.Context) {
 		Option CommnentOption `json:"option" binding:"required"`
 	}{}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
 	if err := controller.service.LikeOrUnlikeComment(req.ID, userid, req.Option); err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
 	if req.Option == LikeComment {
@@ -171,12 +171,12 @@ func (controller *BlogController) PostComment(c *gin.Context) {
 		Content    string `json:"content" binding:"required"`
 	}{}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
 	blogPostId, err := primitive.ObjectIDFromHex(req.BlogPostId)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
 	comment := &Comment{
@@ -187,14 +187,14 @@ func (controller *BlogController) PostComment(c *gin.Context) {
 	if req.ParentId != "" {
 		parentId, err := primitive.ObjectIDFromHex(req.ParentId)
 		if err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
+			c.JSON(400, gin.H{"error": gin.H{"message": err.Error()}})
 			return
 		}
 		comment.ParentId = parentId
 	}
 
 	if err := controller.service.PostComment(comment); err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
 	c.JSON(200, gin.H{"message": "Comment posted successfully"})
@@ -204,7 +204,7 @@ func (controller *BlogController) GetComments(c *gin.Context) {
 	postId := c.Param("postId")
 	comments, err := controller.service.GetComments(postId)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
 	c.JSON(200, gin.H{"data": comments})
@@ -214,7 +214,7 @@ func (controller *BlogController) GetComment(c *gin.Context) {
 	id := c.Param("id")
 	comment, err := controller.service.GetComment(id)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
 	c.JSON(200, gin.H{"data": comment})
@@ -225,14 +225,14 @@ func (controller *BlogController) UpdateComment(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := primitive.ObjectIDFromHex(idStr)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
 	req := struct {
 		Content string `json:"content" binding:"required"`
 	}{}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
 	comment := &Comment{
@@ -241,7 +241,7 @@ func (controller *BlogController) UpdateComment(c *gin.Context) {
 		Content:  req.Content,
 	}
 	if err := controller.service.UpdateComment(comment); err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
 	c.JSON(200, gin.H{"message": "Comment updated successfully"})

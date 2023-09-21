@@ -46,7 +46,7 @@ func BlogRouter() *gin.Engine {
 	}
 	postCollection := client.Database("bloggy").Collection("posts")
 	commentCollection := client.Database("bloggy").Collection("comments")
-	tokenCollection:=client.Database("bloggy").Collection("tokens")
+	tokenCollection := client.Database("bloggy").Collection("tokens")
 	accessTokenSecret := os.Getenv("ACCESS_TOKEN_SECRET")
 	accessTokenValidaityInHours := int64(24)
 	tokenManager := user.NewTokenManager(accessTokenSecret, accessTokenValidaityInHours, tokenCollection)
@@ -57,13 +57,13 @@ func BlogRouter() *gin.Engine {
 	if err := blog.InitSearchIndex(postCollection); err != nil {
 		log.Fatal(err.Error())
 	}
-	if err:=user.InitTokenExpiryIndex(tokenCollection); err!=nil{
+	if err := user.InitTokenExpiryIndex(tokenCollection); err != nil {
 		log.Fatal(err.Error())
 	}
 
 	r.NoRoute(func(ctx *gin.Context) { ctx.JSON(404, gin.H{"error": "endpoint not found"}) })
 	r.GET("/", func(ctx *gin.Context) { ctx.JSON(200, gin.H{"message": "welcome to bloggy"}) })
-	r.POST("/blog", middleware.Authentication(),middleware.Authorization([]user.Role{user.Admin}), blogController.CreateBlogPost)
+	r.POST("/blog", middleware.Authentication(), middleware.Authorization([]user.Role{user.Admin}), blogController.CreateBlogPost)
 	r.GET("/blog", blogController.GetBlogPosts)
 	r.GET("/blog/:id", blogController.GetBlogPost)
 	r.PUT("/blog/:id", middleware.Authentication(), middleware.Authorization([]user.Role{user.Admin}), blogController.UpdateBlogPost)
