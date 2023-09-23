@@ -97,7 +97,7 @@ func (repo *BlogRepo) DeleteBlogPost(filter interface{}, opts ...*options.Delete
 }
 
 func InitSearchIndex(blogCollection *mongo.Collection) error {
-	ctx, cancel := db.DBReqContext(5)
+	ctx, cancel := db.DBReqContext(20)
 	defer cancel()
 	_, err := blogCollection.Indexes().CreateOne(ctx, mongo.IndexModel{
 		Keys:    bson.D{{Key: "title", Value: "text"}, {Key: "content", Value: "text"}, {Key: "description", Value: "text"}},

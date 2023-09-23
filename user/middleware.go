@@ -104,3 +104,11 @@ func (m *Middleware) Authorization(roles []Role) gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+
+func (m *Middleware) JsonMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Header("Content-Type", "application/json")
+		c.Next()
+	}
+}

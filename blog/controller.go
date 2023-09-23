@@ -63,7 +63,7 @@ func (controller *BlogController) GetBlogPosts(c *gin.Context) {
 }
 
 func (controller *BlogController) Search(c *gin.Context) {
-	q := c.Query("query")
+	q := c.Query("q")
 	if q == "" {
 		c.JSON(400, gin.H{"error": gin.H{"message": "query param is required"}})
 		return

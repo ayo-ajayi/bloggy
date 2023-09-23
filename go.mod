@@ -3,12 +3,12 @@ module github.com/ayo-ajayi/bloggy
 go 1.20
 
 require (
-	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/google/uuid v1.3.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/gosimple/slug v1.13.1
 	github.com/joho/godotenv v1.5.1
+	github.com/rs/cors/wrapper/gin v0.0.0-20230905230807-20a76bd635d3
 	go.mongodb.org/mongo-driver v1.12.1
 	golang.org/x/oauth2 v0.12.0
 )
@@ -16,6 +16,10 @@ require (
 require (
 	github.com/chenzhuoyu/iasm v0.9.0 // indirect
 	github.com/gosimple/unidecode v1.0.1 // indirect
+	github.com/kr/pretty v0.3.0 // indirect
+	github.com/rogpeppe/go-internal v1.8.0 // indirect
+	github.com/rs/cors v1.8.1 // indirect
+	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
 
 require (

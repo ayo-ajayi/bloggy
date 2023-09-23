@@ -7,42 +7,15 @@ import (
 	"github.com/ayo-ajayi/bloggy/blog"
 	"github.com/ayo-ajayi/bloggy/db"
 	"github.com/ayo-ajayi/bloggy/user"
-	"github.com/gin-contrib/cors"
+	cors "github.com/rs/cors/wrapper/gin"
 	"github.com/gin-gonic/gin"
 )
 
 func BlogRouter() *gin.Engine {
-	r := gin.Default()
-	cfg := cors.DefaultConfig()
-	cfg.AllowAllOrigins = true
-	cfg.AllowHeaders = []string{
-		"Origin",
-		"Content-Length",
-		"Content-Type",
-		"Authorization",
-		"X-Requested-With",
-		"Accept",
-		"Accept-Language",
-		"Host",
-		"Referer",
-		"User-Agent",
-		"Access-Control-Allow-Origin",
-		"Access-Control-Allow-Headers",
-		"Access-Control-Allow-Methods",
-		"Access-Control-Allow-Credentials",
-		"Access-Control-Max-Age",
-		"Access-Control-Expose-Headers",
-		"Access-Control-Request-Headers",
-		"Access-Control-Request-Method",
-		"Connection",
-		"Accept-Encoding",
-	}
-
-	r.Use(cors.New(cfg))
-
+	
 	client, err := db.MongoClient(os.Getenv("MONGODB_URI"))
 	if err != nil {
-		panic(err)
+		log.Fatal(err.Error())
 	}
 	postCollection := client.Database("bloggy").Collection("posts")
 	commentCollection := client.Database("bloggy").Collection("comments")
@@ -60,6 +33,13 @@ func BlogRouter() *gin.Engine {
 	if err := user.InitTokenExpiryIndex(tokenCollection); err != nil {
 		log.Fatal(err.Error())
 	}
+	r := gin.Default()
+	r.Use(middleware.JsonMiddleware(), cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: true,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"*"},
+	}))
 
 	r.NoRoute(func(ctx *gin.Context) { ctx.JSON(404, gin.H{"error": "endpoint not found"}) })
 	r.GET("/", func(ctx *gin.Context) { ctx.JSON(200, gin.H{"message": "welcome to bloggy"}) })
