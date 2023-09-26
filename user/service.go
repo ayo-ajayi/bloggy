@@ -38,6 +38,13 @@ type UserRepository interface {
 	GetUser(filter interface{}, opts ...*options.FindOneOptions) (*User, error)
 	UpdateUser(filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
 	IsExists(filter interface{}, opts ...*options.FindOneOptions) (bool, error)
+	CreateAboutMe(filter interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error)
+	GetAboutMe(filter interface{}, opts ...*options.FindOneOptions) (*AboutMe, error)
+	UpdateAboutMe(filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
+
+	CreateMailingList(filter interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error)
+	GetMailingList(filter interface{}, opts ...*options.FindOneOptions) (*MailingList, error)
+	UpdateMailingList(filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
 }
 
 func NewUserService(repo UserRepository, tokenMgr TokenMgr) *UserService {
@@ -178,4 +185,107 @@ func (us *UserService) Logout(accessUuid string) error {
 
 func (us *UserService) Profile(userId string) (*User, error) {
 	return us.repo.GetUser(bson.M{"_id": userId})
+}
+
+func (us *UserService) UpdateAboutMe(userId, aboutMe, profilePicture string) error {
+	exists, err := us.repo.IsExists(bson.M{"_id": "profile_picture" + userId})
+	if err != nil {
+		return err
+	}
+	if !exists {
+		_, err := us.repo.CreateAboutMe(bson.M{"_id": "profile_picture" + userId, "about_me": aboutMe, "profile_picture": profilePicture, "updated_at": time.Now()})
+		if err != nil {
+			return err
+		}
+	}
+	_, err = us.repo.UpdateUser(bson.M{"_id": "profile_picture" + userId}, bson.M{"$set": bson.M{"about_me": aboutMe, "profile_picture": profilePicture, "updated_at": time.Now()}})
+	return err
+}
+
+func (us *UserService) GetAboutMe()(*AboutMe, error) {
+	admin, err := us.repo.GetUser(bson.M{"role": Admin})
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+	aboutMe, err := us.repo.GetAboutMe(bson.M{"_id": "profile_picture" + admin.ID})
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return aboutMe, nil
+}
+
+func (us *UserService) SubscribeToMailingList(id string) error {
+	user, err := us.Profile(id)
+	if err != nil {
+		return err
+	}
+	mailingList, err:=us.GetMailingList()
+	if err != nil {
+		return err
+	}
+	if mailingList == nil {
+		_, err := us.repo.CreateMailingList(bson.M{"name": "mailing_list", "subscribers": []Subscriber{
+			{
+				Email:     user.Email,
+				Name:      user.Name,
+				CreatedAt: time.Now(),
+			},
+		}})
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	for _, subscriber := range mailingList.Subscribers{
+		if subscriber.Email == user.Email{
+			return errors.New("user is already subscribed to mailing list")
+		}
+	}
+	_, err = us.repo.UpdateMailingList(bson.M{"name": "mailing_list"}, bson.M{"$push": bson.M{"subscribers": bson.M{"email": user.Email, "name": user.Name, "created_at": time.Now()}}})
+	return err
+}
+
+
+func (us *UserService)GetMailingList()(*MailingList, error){
+	mailingList, err := us.repo.GetMailingList(bson.M{"name": "mailing_list"})
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return mailingList, nil
+}
+
+func(us *UserService)UnSubscribeFromMailingList(id string)error{
+	user, err := us.Profile(id)
+	if err != nil {
+		return err
+	}
+	mailingList, err:=us.GetMailingList()
+	if err != nil {
+		return err
+	}
+	if mailingList == nil {
+		return errors.New("user is not subscribed to mailing list")
+	}
+
+	removeSubscriber:=false
+	for _, subscriber := range mailingList.Subscribers{
+		if subscriber.Email == user.Email{
+			removeSubscriber = true
+			break
+		}
+	}
+	if !removeSubscriber{
+		return errors.New("user is not subscribed to mailing list")
+	}
+	_, err = us.repo.UpdateMailingList(bson.M{"name": "mailing_list"}, bson.M{"$pull": bson.M{"subscribers": bson.M{"email": user.Email}}})
+	return err
 }

@@ -40,12 +40,12 @@ func (m *Middleware) Authentication() gin.HandlerFunc {
 		jwtToken, err := ValidateToken(token, m.accessTokenSecret)
 		if err != nil {
 			if errors.Is(err, jwt.ErrSignatureInvalid) {
-				c.JSON(http.StatusUnauthorized, gin.H{"error": gin.H{"message": "unauthorized: "+err.Error()}})
+				c.JSON(http.StatusUnauthorized, gin.H{"error": gin.H{"message": "unauthorized: " + err.Error()}})
 				c.Abort()
 				return
 			}
 			if errors.Is(err, jwt.ErrTokenExpired) {
-				c.JSON(http.StatusUnauthorized, gin.H{"error": gin.H{"message": "unauthorized: "+err.Error()}})
+				c.JSON(http.StatusUnauthorized, gin.H{"error": gin.H{"message": "unauthorized: " + err.Error()}})
 				c.Abort()
 				return
 			}
@@ -55,13 +55,13 @@ func (m *Middleware) Authentication() gin.HandlerFunc {
 		}
 		td, err := m.tokenManager.ExtractTokenMetadata(jwtToken)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "unauthorized: "+err.Error()}})
+			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "unauthorized: " + err.Error()}})
 			c.Abort()
 			return
 		}
 		_, err = m.tokenManager.FindToken(bson.M{"access_uuid": td.AccessUuid})
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "unauthorized: "+err.Error()}})
+			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "unauthorized: " + err.Error()}})
 			c.Abort()
 			return
 		}
@@ -104,7 +104,6 @@ func (m *Middleware) Authorization(roles []Role) gin.HandlerFunc {
 		c.Next()
 	}
 }
-
 
 func (m *Middleware) JsonMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {

@@ -3,6 +3,7 @@ module github.com/ayo-ajayi/bloggy
 go 1.20
 
 require (
+	github.com/cloudinary/cloudinary-go/v2 v2.5.1
 	github.com/gin-gonic/gin v1.9.1
 	github.com/google/uuid v1.3.1
 	github.com/gorilla/sessions v1.2.1
@@ -15,6 +16,8 @@ require (
 
 require (
 	github.com/chenzhuoyu/iasm v0.9.0 // indirect
+	github.com/creasty/defaults v1.5.1 // indirect
+	github.com/gorilla/schema v1.2.0 // indirect
 	github.com/gosimple/unidecode v1.0.1 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect

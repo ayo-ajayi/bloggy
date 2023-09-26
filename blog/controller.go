@@ -12,7 +12,8 @@ type BlogController struct {
 type BlogServices interface {
 	CreateBlogPost(blogPost *BlogPost) error
 	GetBlogPosts() ([]*BlogPost, error)
-	GetBlogPost(idStr string) (*BlogPost, error)
+	GetBlogPostByID(idStr string) (*BlogPost, error)
+	GetBlogPostBySlug(slug string) (*BlogPost, error)
 	UpdateBlogPost(blogPost *BlogPost) error
 	DeleteBlogPost(idStr string) error
 	SearchBlogPosts(query string) ([]*BlogPost, error)
@@ -76,10 +77,19 @@ func (controller *BlogController) Search(c *gin.Context) {
 	c.JSON(200, gin.H{"data": bp})
 }
 
-func (controller *BlogController) GetBlogPost(c *gin.Context) {
+func (controller *BlogController) GetBlogPostByID(c *gin.Context) {
 	id := c.Param("id")
-	post, err := controller.service.GetBlogPost(id)
+	post, err := controller.service.GetBlogPostByID(id)
 	if err != nil {
+		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
+		return
+	}
+	c.JSON(200, gin.H{"data": post})
+}
+func (controller *BlogController)GetBlogPostBySlug(c *gin.Context){
+	slug := c.Param("slug")
+	post, err := controller.service.GetBlogPostBySlug(slug)
+	if err != nil{
 		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
@@ -88,7 +98,7 @@ func (controller *BlogController) GetBlogPost(c *gin.Context) {
 
 func (controller *BlogController) UpdateBlogPost(c *gin.Context) {
 	id := c.Param("id")
-	post, err := controller.service.GetBlogPost(id)
+	post, err := controller.service.GetBlogPostByID(id)
 	if err != nil {
 		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return

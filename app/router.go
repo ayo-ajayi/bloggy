@@ -7,12 +7,12 @@ import (
 	"github.com/ayo-ajayi/bloggy/blog"
 	"github.com/ayo-ajayi/bloggy/db"
 	"github.com/ayo-ajayi/bloggy/user"
-	cors "github.com/rs/cors/wrapper/gin"
 	"github.com/gin-gonic/gin"
+	cors "github.com/rs/cors/wrapper/gin"
 )
 
 func BlogRouter() *gin.Engine {
-	
+
 	client, err := db.MongoClient(os.Getenv("MONGODB_URI"))
 	if err != nil {
 		log.Fatal(err.Error())
@@ -25,7 +25,11 @@ func BlogRouter() *gin.Engine {
 	tokenManager := user.NewTokenManager(accessTokenSecret, accessTokenValidaityInHours, tokenCollection)
 	blogController := blog.NewBlogController(blog.NewBlogService(blog.NewBlogRepo(postCollection, commentCollection)))
 	userRepo := user.NewUserRepo(client.Database("bloggy").Collection("users"))
-	userController := user.NewUserController(user.NewUserService(userRepo, tokenManager))
+	cloudinary, err := user.NewMediaCloudManager(os.Getenv("CLOUDINARY_URI"), "bloggy")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	userController := user.NewUserController(user.NewUserService(userRepo, tokenManager), cloudinary)
 	middleware := user.NewMiddleware(accessTokenSecret, userRepo, tokenManager)
 	if err := blog.InitSearchIndex(postCollection); err != nil {
 		log.Fatal(err.Error())
@@ -45,7 +49,8 @@ func BlogRouter() *gin.Engine {
 	r.GET("/", func(ctx *gin.Context) { ctx.JSON(200, gin.H{"message": "welcome to bloggy"}) })
 	r.POST("/blog", middleware.Authentication(), middleware.Authorization([]user.Role{user.Admin}), blogController.CreateBlogPost)
 	r.GET("/blog", blogController.GetBlogPosts)
-	r.GET("/blog/:id", blogController.GetBlogPost)
+	r.GET("/blog/:id", blogController.GetBlogPostByID)
+	r.GET("/blog/slug/:slug", blogController.GetBlogPostBySlug)
 	r.PUT("/blog/:id", middleware.Authentication(), middleware.Authorization([]user.Role{user.Admin}), blogController.UpdateBlogPost)
 	r.DELETE("/blog/:id", middleware.Authentication(), middleware.Authorization([]user.Role{user.Admin}), blogController.DeleteBlogPost)
 	r.GET("/search", blogController.Search)
@@ -59,6 +64,11 @@ func BlogRouter() *gin.Engine {
 	r.PUT("/comment/:id", middleware.Authentication(), blogController.UpdateComment)
 	r.GET("/comments/:postId", blogController.GetComments)
 	r.GET("/comment/:id", blogController.GetComment)
+	r.PUT("/about", middleware.Authentication(), middleware.Authorization([]user.Role{user.Admin}), userController.UpdateAboutMe)
+	r.GET("/about", userController.GetAboutMe)
+	r.POST("/subscribe", middleware.Authentication(),userController.SubscribeToMailingList)
+	r.DELETE("/unsubscribe", middleware.Authentication(),userController.UnSubscribeFromMailingList)
+	r.GET("/mailing-list", middleware.Authentication(), middleware.Authorization([]user.Role{user.Admin}), userController.GetMailingList)
 
 	return r
 }

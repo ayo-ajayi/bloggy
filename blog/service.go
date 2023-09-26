@@ -35,9 +35,18 @@ func NewBlogService(repo BlogRepository) *BlogService {
 
 func (service *BlogService) CreateBlogPost(blogPost *BlogPost) error {
 	blogPost.Slug = slug.Make(blogPost.Title)
+	p, err:=service.repo.GetBlogPost(bson.M{"slug": blogPost.Slug})
+	if err != nil {
+		if err == mongo.ErrNoDocuments {} else {
+			return err
+		}
+	}
+	if p != nil {
+		blogPost.Slug = blogPost.Slug + "-" + primitive.NewObjectID().Hex()
+	}
 	blogPost.CreatedAt = time.Now()
 	blogPost.UpdatedAt = time.Now()
-	_, err := service.repo.CreateBlogPost(blogPost)
+	_, err = service.repo.CreateBlogPost(blogPost)
 	return err
 }
 
@@ -49,12 +58,20 @@ func (service *BlogService) GetBlogPosts() ([]*BlogPost, error) {
 	return posts, nil
 }
 
-func (service *BlogService) GetBlogPost(idStr string) (*BlogPost, error) {
+func (service *BlogService) GetBlogPostByID(idStr string) (*BlogPost, error) {
 	id, err := primitive.ObjectIDFromHex(idStr)
 	if err != nil {
 		return nil, err
 	}
 	post, err := service.repo.GetBlogPost(bson.M{"_id": id})
+	if err != nil {
+		return nil, err
+	}
+	return post, nil
+}
+
+func (service *BlogService) GetBlogPostBySlug(slug string) (*BlogPost, error) {
+	post, err := service.repo.GetBlogPost(bson.M{"slug": slug})
 	if err != nil {
 		return nil, err
 	}
