@@ -20,14 +20,13 @@ const (
 	Reader Role = "user"
 )
 
-
-type MailingList struct{
-	Name string `json:"name" bson:"name"`
+type MailingList struct {
+	Name        string       `json:"name" bson:"name"`
 	Subscribers []Subscriber `json:"subscribers" bson:"subscribers"`
 }
 
-type Subscriber struct{
-	Email string `json:"email" bson:"email"`
-	Name string `json:"name" bson:"name"`
+type Subscriber struct {
+	Email     string    `json:"email" bson:"email"`
+	Name      string    `json:"name" bson:"name"`
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 }

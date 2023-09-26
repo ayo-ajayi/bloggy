@@ -35,9 +35,10 @@ func NewBlogService(repo BlogRepository) *BlogService {
 
 func (service *BlogService) CreateBlogPost(blogPost *BlogPost) error {
 	blogPost.Slug = slug.Make(blogPost.Title)
-	p, err:=service.repo.GetBlogPost(bson.M{"slug": blogPost.Slug})
+	p, err := service.repo.GetBlogPost(bson.M{"slug": blogPost.Slug})
 	if err != nil {
-		if err == mongo.ErrNoDocuments {} else {
+		if err == mongo.ErrNoDocuments {
+		} else {
 			return err
 		}
 	}

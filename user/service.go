@@ -202,7 +202,7 @@ func (us *UserService) UpdateAboutMe(userId, aboutMe, profilePicture string) err
 	return err
 }
 
-func (us *UserService) GetAboutMe()(*AboutMe, error) {
+func (us *UserService) GetAboutMe() (*AboutMe, error) {
 	admin, err := us.repo.GetUser(bson.M{"role": Admin})
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -225,7 +225,7 @@ func (us *UserService) SubscribeToMailingList(id string) error {
 	if err != nil {
 		return err
 	}
-	mailingList, err:=us.GetMailingList()
+	mailingList, err := us.GetMailingList()
 	if err != nil {
 		return err
 	}
@@ -242,8 +242,8 @@ func (us *UserService) SubscribeToMailingList(id string) error {
 		}
 		return nil
 	}
-	for _, subscriber := range mailingList.Subscribers{
-		if subscriber.Email == user.Email{
+	for _, subscriber := range mailingList.Subscribers {
+		if subscriber.Email == user.Email {
 			return errors.New("user is already subscribed to mailing list")
 		}
 	}
@@ -251,8 +251,7 @@ func (us *UserService) SubscribeToMailingList(id string) error {
 	return err
 }
 
-
-func (us *UserService)GetMailingList()(*MailingList, error){
+func (us *UserService) GetMailingList() (*MailingList, error) {
 	mailingList, err := us.repo.GetMailingList(bson.M{"name": "mailing_list"})
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -263,12 +262,12 @@ func (us *UserService)GetMailingList()(*MailingList, error){
 	return mailingList, nil
 }
 
-func(us *UserService)UnSubscribeFromMailingList(id string)error{
+func (us *UserService) UnSubscribeFromMailingList(id string) error {
 	user, err := us.Profile(id)
 	if err != nil {
 		return err
 	}
-	mailingList, err:=us.GetMailingList()
+	mailingList, err := us.GetMailingList()
 	if err != nil {
 		return err
 	}
@@ -276,14 +275,14 @@ func(us *UserService)UnSubscribeFromMailingList(id string)error{
 		return errors.New("user is not subscribed to mailing list")
 	}
 
-	removeSubscriber:=false
-	for _, subscriber := range mailingList.Subscribers{
-		if subscriber.Email == user.Email{
+	removeSubscriber := false
+	for _, subscriber := range mailingList.Subscribers {
+		if subscriber.Email == user.Email {
 			removeSubscriber = true
 			break
 		}
 	}
-	if !removeSubscriber{
+	if !removeSubscriber {
 		return errors.New("user is not subscribed to mailing list")
 	}
 	_, err = us.repo.UpdateMailingList(bson.M{"name": "mailing_list"}, bson.M{"$pull": bson.M{"subscribers": bson.M{"email": user.Email}}})

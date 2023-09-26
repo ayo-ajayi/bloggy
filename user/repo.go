@@ -44,21 +44,18 @@ func (repo *UserRepo) GetUser(filter interface{}, opts ...*options.FindOneOption
 	return &user, nil
 }
 
-
 func (repo *UserRepo) UpdateUser(filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
 	ctx, cancel := db.DBReqContext(20)
 	defer cancel()
 	return repo.collection.UpdateOne(ctx, filter, update, opts...)
 }
 
-
-
 func (repo *UserRepo) CreateAboutMe(filter interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
 	ctx, cancel := db.DBReqContext(20)
 	defer cancel()
 	return repo.collection.InsertOne(ctx, filter, opts...)
 }
-func (repo *UserRepo)UpdateAboutMe(filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
+func (repo *UserRepo) UpdateAboutMe(filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
 	return repo.UpdateUser(filter, update, opts...)
 }
 func (repo *UserRepo) GetAboutMe(filter interface{}, opts ...*options.FindOneOptions) (*AboutMe, error) {
@@ -72,7 +69,7 @@ func (repo *UserRepo) GetAboutMe(filter interface{}, opts ...*options.FindOneOpt
 	return &aboutMe, nil
 }
 
-func (repo *UserRepo)CreateMailingList(filter interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
+func (repo *UserRepo) CreateMailingList(filter interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
 	ctx, cancel := db.DBReqContext(20)
 	defer cancel()
 	return repo.collection.InsertOne(ctx, filter, opts...)
@@ -89,6 +86,6 @@ func (repo *UserRepo) GetMailingList(filter interface{}, opts ...*options.FindOn
 	return &mailingList, nil
 }
 
-func(repo *UserRepo) UpdateMailingList(filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
+func (repo *UserRepo) UpdateMailingList(filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
 	return repo.UpdateUser(filter, update, opts...)
 }

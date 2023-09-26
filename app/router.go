@@ -66,8 +66,8 @@ func BlogRouter() *gin.Engine {
 	r.GET("/comment/:id", blogController.GetComment)
 	r.PUT("/about", middleware.Authentication(), middleware.Authorization([]user.Role{user.Admin}), userController.UpdateAboutMe)
 	r.GET("/about", userController.GetAboutMe)
-	r.POST("/subscribe", middleware.Authentication(),userController.SubscribeToMailingList)
-	r.DELETE("/unsubscribe", middleware.Authentication(),userController.UnSubscribeFromMailingList)
+	r.POST("/subscribe", middleware.Authentication(), userController.SubscribeToMailingList)
+	r.DELETE("/unsubscribe", middleware.Authentication(), userController.UnSubscribeFromMailingList)
 	r.GET("/mailing-list", middleware.Authentication(), middleware.Authorization([]user.Role{user.Admin}), userController.GetMailingList)
 
 	return r

@@ -86,10 +86,10 @@ func (controller *BlogController) GetBlogPostByID(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{"data": post})
 }
-func (controller *BlogController)GetBlogPostBySlug(c *gin.Context){
+func (controller *BlogController) GetBlogPostBySlug(c *gin.Context) {
 	slug := c.Param("slug")
 	post, err := controller.service.GetBlogPostBySlug(slug)
-	if err != nil{
+	if err != nil {
 		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
