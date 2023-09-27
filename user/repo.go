@@ -89,3 +89,17 @@ func (repo *UserRepo) GetMailingList(filter interface{}, opts ...*options.FindOn
 func (repo *UserRepo) UpdateMailingList(filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
 	return repo.UpdateUser(filter, update, opts...)
 }
+
+func (repo *UserRepo) GetUsers(filter interface{}, opts ...*options.FindOptions) ([]*User, error) {
+	ctx, cancel := db.DBReqContext(20)
+	defer cancel()
+	var users []*User
+	cursor, err := repo.collection.Find(ctx, filter, opts...)
+	if err != nil {
+		return nil, err
+	}
+	if err = cursor.All(ctx, &users); err != nil {
+		return nil, err
+	}
+	return users, nil
+}

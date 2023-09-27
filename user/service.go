@@ -36,6 +36,7 @@ type TokenMgr interface {
 type UserRepository interface {
 	CreateUser(user *User) (*mongo.InsertOneResult, error)
 	GetUser(filter interface{}, opts ...*options.FindOneOptions) (*User, error)
+	GetUsers(filter interface{}, opts ...*options.FindOptions) ([]*User, error)
 	UpdateUser(filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
 	IsExists(filter interface{}, opts ...*options.FindOneOptions) (bool, error)
 	CreateAboutMe(filter interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error)
@@ -177,6 +178,26 @@ func (us *UserService) SaveUser(googleLoginResponse *GoogleLoginResponse) error 
 		return err
 	}
 	return nil
+}
+
+func (us *UserService) GetUsers() ([]*User, error) {
+	users, err := us.repo.GetUsers(bson.M{
+		"role": bson.M{
+			"$ne": Admin,
+		},
+		"name": bson.M{
+			"$ne": "mailing_list",
+		},
+		"_id": bson.M{
+			"$not": bson.M{
+				"$regex": "profile_picture.*",
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }
 
 func (us *UserService) Logout(accessUuid string) error {

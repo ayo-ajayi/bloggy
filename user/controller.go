@@ -30,6 +30,7 @@ type UserServices interface {
 	SubscribeToMailingList(id string) error
 	UnSubscribeFromMailingList(id string) error
 	GetMailingList() (*MailingList, error)
+	GetUsers() ([]*User, error)
 }
 
 type Uploader interface {
@@ -170,4 +171,13 @@ func (uc *UserController) GetMailingList(c *gin.Context) {
 		return
 	}
 	c.JSON(200, gin.H{"data": mailingList})
+}
+
+func (uc *UserController) GetUsers(c *gin.Context) {
+	u, err := uc.service.GetUsers()
+	if err != nil {
+		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
+		return
+	}
+	c.JSON(200, gin.H{"data": u})
 }

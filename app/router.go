@@ -57,6 +57,7 @@ func BlogRouter() *gin.Engine {
 	r.GET("/login", userController.Login)
 	r.GET("/callback", userController.Callback)
 	r.GET("/profile", middleware.Authentication(), userController.Profile)
+	r.GET("/users", middleware.Authentication(), middleware.Authorization([]user.Role{user.Admin}), userController.GetUsers)
 	r.DELETE("/logout", middleware.Authentication(), userController.Logout)
 	r.POST("/like-unlike-post", middleware.Authentication(), blogController.LikeOrUnlikePost)
 	r.POST("/like-unlike-comment", middleware.Authentication(), blogController.LikeOrUnlikeComment)
@@ -69,6 +70,5 @@ func BlogRouter() *gin.Engine {
 	r.POST("/subscribe", middleware.Authentication(), userController.SubscribeToMailingList)
 	r.DELETE("/unsubscribe", middleware.Authentication(), userController.UnSubscribeFromMailingList)
 	r.GET("/mailing-list", middleware.Authentication(), middleware.Authorization([]user.Role{user.Admin}), userController.GetMailingList)
-
 	return r
 }
