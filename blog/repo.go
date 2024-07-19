@@ -1,10 +1,9 @@
 package blog
 
 import (
+	"context"
 	"errors"
 	"time"
-
-	"github.com/ayo-ajayi/bloggy/db"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -45,14 +44,10 @@ func NewBlogRepo(blogCollection, commentCollection *mongo.Collection) *BlogRepo 
 	return &BlogRepo{blogCollection, commentCollection}
 }
 
-func (repo *BlogRepo) CreateBlogPost(blogPost *BlogPost) (*mongo.InsertOneResult, error) {
-	ctx, cancel := db.DBReqContext(20)
-	defer cancel()
+func (repo *BlogRepo) CreateBlogPost(ctx context.Context,blogPost *BlogPost) (*mongo.InsertOneResult, error) {
 	return repo.blogCollection.InsertOne(ctx, blogPost)
 }
-func (rep *BlogRepo) GetBlogPosts(filter interface{}, opts ...*options.FindOptions) ([]*BlogPost, error) {
-	ctx, cancel := db.DBReqContext(20)
-	defer cancel()
+func (rep *BlogRepo) GetBlogPosts(ctx context.Context,filter interface{}, opts ...*options.FindOptions) ([]*BlogPost, error) {
 	cur, err := rep.blogCollection.Find(ctx, filter, opts...)
 	if err != nil {
 		return nil, err
@@ -73,9 +68,7 @@ func (rep *BlogRepo) GetBlogPosts(filter interface{}, opts ...*options.FindOptio
 	return blogPosts, nil
 }
 
-func (repo *BlogRepo) GetBlogPost(filter interface{}, opts ...*options.FindOneOptions) (*BlogPost, error) {
-	ctx, cancel := db.DBReqContext(20)
-	defer cancel()
+func (repo *BlogRepo) GetBlogPost(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (*BlogPost, error) {
 	var blogPost BlogPost
 	err := repo.blogCollection.FindOne(ctx, filter, opts...).Decode(&blogPost)
 	if err != nil {
@@ -84,21 +77,15 @@ func (repo *BlogRepo) GetBlogPost(filter interface{}, opts ...*options.FindOneOp
 	return &blogPost, nil
 }
 
-func (repo *BlogRepo) UpdateBlogPost(filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
-	ctx, cancel := db.DBReqContext(20)
-	defer cancel()
+func (repo *BlogRepo) UpdateBlogPost(ctx context.Context,filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
 	return repo.blogCollection.UpdateOne(ctx, filter, update, opts...)
 }
 
-func (repo *BlogRepo) DeleteBlogPost(filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
-	ctx, cancel := db.DBReqContext(20)
-	defer cancel()
+func (repo *BlogRepo) DeleteBlogPost(ctx context.Context, filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
 	return repo.blogCollection.DeleteOne(ctx, filter, opts...)
 }
 
-func InitSearchIndex(blogCollection *mongo.Collection) error {
-	ctx, cancel := db.DBReqContext(20)
-	defer cancel()
+func InitSearchIndex(ctx context.Context,blogCollection *mongo.Collection) error {
 	_, err := blogCollection.Indexes().CreateOne(ctx, mongo.IndexModel{
 		Keys:    bson.D{{Key: "title", Value: "text"}, {Key: "content", Value: "text"}, {Key: "description", Value: "text"}},
 		Options: options.Index().SetName("text_index"),
@@ -109,7 +96,7 @@ func InitSearchIndex(blogCollection *mongo.Collection) error {
 	return err
 }
 
-func (repo *BlogRepo) SearchBlogPosts(query string) ([]*BlogPost, error) {
+func (repo *BlogRepo) SearchBlogPosts(ctx context.Context,query string) ([]*BlogPost, error) {
 	filter := bson.M{
 		"$or": []bson.M{
 			{"title": primitive.Regex{
@@ -127,17 +114,13 @@ func (repo *BlogRepo) SearchBlogPosts(query string) ([]*BlogPost, error) {
 			},
 			},
 		}}
-	return repo.GetBlogPosts(filter)
+	return repo.GetBlogPosts(ctx, filter)
 }
 
-func (repo *BlogRepo) PostComment(comment *Comment) (*mongo.InsertOneResult, error) {
-	ctx, cancel := db.DBReqContext(20)
-	defer cancel()
+func (repo *BlogRepo) PostComment(ctx context.Context,comment *Comment) (*mongo.InsertOneResult, error) {
 	return repo.commentCollection.InsertOne(ctx, comment)
 }
-func (rep *BlogRepo) GetComments(filter interface{}, opts ...*options.FindOptions) ([]*Comment, error) {
-	ctx, cancel := db.DBReqContext(20)
-	defer cancel()
+func (rep *BlogRepo) GetComments(ctx context.Context,filter interface{}, opts ...*options.FindOptions) ([]*Comment, error) {
 	cur, err := rep.commentCollection.Find(ctx, filter, opts...)
 	if err != nil {
 		return nil, err
@@ -158,9 +141,7 @@ func (rep *BlogRepo) GetComments(filter interface{}, opts ...*options.FindOption
 	return comments, nil
 }
 
-func (repo *BlogRepo) GetComment(filter interface{}, opts ...*options.FindOneOptions) (*Comment, error) {
-	ctx, cancel := db.DBReqContext(20)
-	defer cancel()
+func (repo *BlogRepo) GetComment(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (*Comment, error) {
 	var comment Comment
 	err := repo.commentCollection.FindOne(ctx, filter, opts...).Decode(&comment)
 	if err != nil {
@@ -169,14 +150,10 @@ func (repo *BlogRepo) GetComment(filter interface{}, opts ...*options.FindOneOpt
 	return &comment, nil
 }
 
-func (repo *BlogRepo) UpdateComment(filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
-	ctx, cancel := db.DBReqContext(20)
-	defer cancel()
+func (repo *BlogRepo) UpdateComment(ctx context.Context,filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
 	return repo.commentCollection.UpdateOne(ctx, filter, update, opts...)
 }
 
-func (repo *BlogRepo) DeleteComment(filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
-	ctx, cancel := db.DBReqContext(20)
-	defer cancel()
+func (repo *BlogRepo) DeleteComment(ctx context.Context,filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
 	return repo.commentCollection.DeleteOne(ctx, filter, opts...)
 }

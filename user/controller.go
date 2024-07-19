@@ -20,17 +20,17 @@ func NewUserController(service UserServices, uploader Uploader) *UserController 
 type UserServices interface {
 	Login(ctx *gin.Context) (string, error)
 	Callback(ctx *gin.Context) (*GoogleLoginResponse, error)
-	SaveAccessToken(userId string, td *TokenDetails) error
+	SaveAccessToken(ctx context.Context,userId string, td *TokenDetails) error
 	GenerateAccessToken(userId string) (*TokenDetails, error)
-	SaveUser(googleLoginResponse *GoogleLoginResponse) error
-	Logout(accessUuid string) error
-	Profile(userId string) (*User, error)
-	UpdateAboutMe(userId, aboutMe, profilePicture string) error
-	GetAboutMe() (*AboutMe, error)
-	SubscribeToMailingList(id string) error
-	UnSubscribeFromMailingList(id string) error
-	GetMailingList() (*MailingList, error)
-	GetUsers() ([]*User, error)
+	SaveUser(ctx context.Context,googleLoginResponse *GoogleLoginResponse) error
+	Logout(ctx context.Context,accessUuid string) error
+	Profile(ctx context.Context,userId string) (*User, error)
+	UpdateAboutMe(ctx context.Context,userId, aboutMe, profilePicture string) error
+	GetAboutMe(ctx context.Context) (*AboutMe, error)
+	SubscribeToMailingList(ctx context.Context,id string) error
+	UnSubscribeFromMailingList(ctx context.Context,id string) error
+	GetMailingList(ctx context.Context) (*MailingList, error)
+	GetUsers(ctx context.Context) ([]*User, error)
 }
 
 type Uploader interface {
@@ -52,7 +52,7 @@ func (uc *UserController) Callback(c *gin.Context) {
 		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
-	if err := uc.service.SaveUser(content); err != nil {
+	if err := uc.service.SaveUser(c, content); err != nil {
 		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
@@ -61,7 +61,7 @@ func (uc *UserController) Callback(c *gin.Context) {
 		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
-	if err := uc.service.SaveAccessToken(content.ID, td); err != nil {
+	if err := uc.service.SaveAccessToken(c, content.ID, td); err != nil {
 		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
@@ -87,7 +87,7 @@ type AboutMe struct {
 
 func (uc *UserController) Logout(c *gin.Context) {
 	accessUuid := c.GetString("access_uuid")
-	if err := uc.service.Logout(accessUuid); err != nil {
+	if err := uc.service.Logout(c, accessUuid); err != nil {
 		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
@@ -95,8 +95,13 @@ func (uc *UserController) Logout(c *gin.Context) {
 }
 
 func (uc *UserController) Profile(c *gin.Context) {
-	userid := c.MustGet("user_id").(string)
-	user, err := uc.service.Profile(userid)
+	userid, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(500, gin.H{"error": gin.H{"message": "user not found"}})	
+		return
+	}
+
+	user, err := uc.service.Profile(c, userid.(string))
 	if err != nil {
 		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
@@ -105,7 +110,11 @@ func (uc *UserController) Profile(c *gin.Context) {
 }
 
 func (uc *UserController) UpdateAboutMe(c *gin.Context) {
-	userid := c.MustGet("user_id").(string)
+	userid,exists := c.Get("user_id")
+	if !exists {
+		c.JSON(500, gin.H{"error": gin.H{"message": "user not found"}})
+		return
+	}	
 	err := c.Request.ParseMultipartForm(32 << 20)
 	if err != nil {
 		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
@@ -127,7 +136,7 @@ func (uc *UserController) UpdateAboutMe(c *gin.Context) {
 	} else {
 		req.ProfilePicture = ""
 	}
-	if err := uc.service.UpdateAboutMe(userid, req.AboutMe, req.ProfilePicture); err != nil {
+	if err := uc.service.UpdateAboutMe(c,userid.(string) , req.AboutMe, req.ProfilePicture); err != nil {
 		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
@@ -135,7 +144,7 @@ func (uc *UserController) UpdateAboutMe(c *gin.Context) {
 }
 
 func (uc *UserController) GetAboutMe(c *gin.Context) {
-	aboutMe, err := uc.service.GetAboutMe()
+	aboutMe, err := uc.service.GetAboutMe(c)
 	if err != nil {
 		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
@@ -147,8 +156,12 @@ func (uc *UserController) GetAboutMe(c *gin.Context) {
 }
 
 func (uc *UserController) SubscribeToMailingList(c *gin.Context) {
-	id := c.MustGet("user_id").(string)
-	if err := uc.service.SubscribeToMailingList(id); err != nil {
+	id, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(500, gin.H{"error": gin.H{"message": "user not found"}})
+		return
+	}
+	if err := uc.service.SubscribeToMailingList(c, id.(string)); err != nil {
 		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
@@ -156,8 +169,12 @@ func (uc *UserController) SubscribeToMailingList(c *gin.Context) {
 }
 
 func (uc *UserController) UnSubscribeFromMailingList(c *gin.Context) {
-	id := c.MustGet("user_id").(string)
-	if err := uc.service.UnSubscribeFromMailingList(id); err != nil {
+	id, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(500, gin.H{"error": gin.H{"message": "user not found"}})
+		return
+	}
+	if err := uc.service.UnSubscribeFromMailingList(c, id.(string)); err != nil {
 		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
@@ -165,7 +182,7 @@ func (uc *UserController) UnSubscribeFromMailingList(c *gin.Context) {
 }
 
 func (uc *UserController) GetMailingList(c *gin.Context) {
-	mailingList, err := uc.service.GetMailingList()
+	mailingList, err := uc.service.GetMailingList(c)
 	if err != nil {
 		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
@@ -174,7 +191,7 @@ func (uc *UserController) GetMailingList(c *gin.Context) {
 }
 
 func (uc *UserController) GetUsers(c *gin.Context) {
-	u, err := uc.service.GetUsers()
+	u, err := uc.service.GetUsers(c)
 	if err != nil {
 		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return

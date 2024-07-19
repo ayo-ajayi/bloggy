@@ -1,8 +1,10 @@
 package app
 
 import (
+	"context"
 	"log"
 	"os"
+	"time"
 
 	"github.com/ayo-ajayi/bloggy/blog"
 	"github.com/ayo-ajayi/bloggy/db"
@@ -12,8 +14,9 @@ import (
 )
 
 func BlogRouter() *gin.Engine {
-
-	client, err := db.MongoClient(os.Getenv("MONGODB_URI"))
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	client, err := db.MongoClient(ctx, os.Getenv("MONGODB_URI"))
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -31,10 +34,10 @@ func BlogRouter() *gin.Engine {
 	}
 	userController := user.NewUserController(user.NewUserService(userRepo, tokenManager), cloudinary)
 	middleware := user.NewMiddleware(accessTokenSecret, userRepo, tokenManager)
-	if err := blog.InitSearchIndex(postCollection); err != nil {
+	if err := blog.InitSearchIndex(ctx, postCollection); err != nil {
 		log.Fatal(err.Error())
 	}
-	if err := user.InitTokenExpiryIndex(tokenCollection); err != nil {
+	if err := user.InitTokenExpiryIndex(ctx, tokenCollection); err != nil {
 		log.Fatal(err.Error())
 	}
 	r := gin.Default()

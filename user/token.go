@@ -1,10 +1,10 @@
 package user
 
 import (
+	"context"
 	"errors"
 	"time"
 
-	"github.com/ayo-ajayi/bloggy/db"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
@@ -42,13 +42,11 @@ func NewTokenManager(accessTokenSecret string, accessTokenValidaityInHours int64
 	return tm
 }
 
-func InitTokenExpiryIndex(collection *mongo.Collection) error {
+func InitTokenExpiryIndex(ctx context.Context,collection *mongo.Collection) error {
 	indexModel := mongo.IndexModel{
 		Keys: bson.M{
 			"expires_at": 1}, Options: options.Index().SetExpireAfterSeconds(0),
 	}
-	ctx, cancel := db.DBReqContext(20)
-	defer cancel()
 	_, err := collection.Indexes().CreateOne(ctx, indexModel)
 	if err != nil {
 		return errors.New("Error creating TTL index for token collection: " + err.Error())
@@ -82,9 +80,7 @@ func createToken(userId string, uuid string, expires int64, secret string) (stri
 	return at.SignedString([]byte(secret))
 }
 
-func (tm *TokenManager) SaveToken(userId string, td *TokenDetails) error {
-	ctx, cancel := db.DBReqContext(20)
-	defer cancel()
+func (tm *TokenManager) SaveToken(ctx context.Context,userId string, td *TokenDetails) error {
 	_, err := tm.collection.InsertOne(ctx, &AccessDetails{
 		AccessUuid: td.AcessUuid,
 		UserId:     userId,
@@ -93,15 +89,11 @@ func (tm *TokenManager) SaveToken(userId string, td *TokenDetails) error {
 	return err
 }
 
-func (tm *TokenManager) DeleteToken(filter interface{}, opts ...*options.DeleteOptions) error {
-	ctx, cancel := db.DBReqContext(20)
-	defer cancel()
+func (tm *TokenManager) DeleteToken(ctx context.Context,filter interface{}, opts ...*options.DeleteOptions) error {
 	_, err := tm.collection.DeleteOne(ctx, filter, opts...)
 	return err
 }
-func (tm *TokenManager) IsExists(filter interface{}, opts ...*options.FindOneOptions) (bool, error) {
-	ctx, cancel := db.DBReqContext(5)
-	defer cancel()
+func (tm *TokenManager) IsExists(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (bool, error) {
 	err := tm.collection.FindOne(ctx, filter, opts...).Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -112,9 +104,7 @@ func (tm *TokenManager) IsExists(filter interface{}, opts ...*options.FindOneOpt
 	return true, nil
 }
 
-func (tm *TokenManager) FindToken(filter interface{}, opts ...*options.FindOneOptions) (*AccessDetails, error) {
-	ctx, cancel := db.DBReqContext(20)
-	defer cancel()
+func (tm *TokenManager) FindToken(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (*AccessDetails, error) {
 	var accessDetails AccessDetails
 	err := tm.collection.FindOne(ctx, filter, opts...).Decode(&accessDetails)
 	if err != nil {

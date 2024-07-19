@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -26,26 +27,26 @@ type UserService struct {
 }
 
 type TokenMgr interface {
-	SaveToken(userId string, td *TokenDetails) error
+	SaveToken(ctx context.Context,userId string, td *TokenDetails) error
 	GenerateToken(userId string) (*TokenDetails, error)
-	FindToken(filter interface{}, opts ...*options.FindOneOptions) (*AccessDetails, error)
-	IsExists(filter interface{}, opts ...*options.FindOneOptions) (bool, error)
-	DeleteToken(filter interface{}, opts ...*options.DeleteOptions) error
+	FindToken(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (*AccessDetails, error)
+	IsExists(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (bool, error)
+	DeleteToken(ctx context.Context,filter interface{}, opts ...*options.DeleteOptions) error
 }
 
 type UserRepository interface {
-	CreateUser(user *User) (*mongo.InsertOneResult, error)
-	GetUser(filter interface{}, opts ...*options.FindOneOptions) (*User, error)
-	GetUsers(filter interface{}, opts ...*options.FindOptions) ([]*User, error)
-	UpdateUser(filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
-	IsExists(filter interface{}, opts ...*options.FindOneOptions) (bool, error)
-	CreateAboutMe(filter interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error)
-	GetAboutMe(filter interface{}, opts ...*options.FindOneOptions) (*AboutMe, error)
-	UpdateAboutMe(filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
+	CreateUser(ctx context.Context,user *User) (*mongo.InsertOneResult, error)
+	GetUser(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (*User, error)
+	GetUsers(ctx context.Context,filter interface{}, opts ...*options.FindOptions) ([]*User, error)
+	UpdateUser(ctx context.Context,filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
+	IsExists(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (bool, error)
+	CreateAboutMe(ctx context.Context,filter interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error)
+	GetAboutMe(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (*AboutMe, error)
+	UpdateAboutMe(ctx context.Context,filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
 
-	CreateMailingList(filter interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error)
-	GetMailingList(filter interface{}, opts ...*options.FindOneOptions) (*MailingList, error)
-	UpdateMailingList(filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
+	CreateMailingList(ctx context.Context,filter interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error)
+	GetMailingList(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (*MailingList, error)
+	UpdateMailingList(ctx context.Context,filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
 }
 
 func NewUserService(repo UserRepository, tokenMgr TokenMgr) *UserService {
@@ -138,20 +139,20 @@ func (us *UserService) GenerateAccessToken(userId string) (*TokenDetails, error)
 	return td, nil
 }
 
-func (us *UserService) SaveAccessToken(userId string, td *TokenDetails) error {
-	exists, err := us.tokenMgr.IsExists(bson.M{"user_id": userId})
+func (us *UserService) SaveAccessToken(ctx context.Context,userId string, td *TokenDetails) error {
+	exists, err := us.tokenMgr.IsExists(ctx, bson.M{"user_id": userId})
 	if err != nil {
 		return err
 	}
 	if exists {
-		if err := us.tokenMgr.DeleteToken(bson.M{"user_id": userId}); err != nil {
+		if err := us.tokenMgr.DeleteToken(ctx, bson.M{"user_id": userId}); err != nil {
 			return err
 		}
 	}
-	return us.tokenMgr.SaveToken(userId, td)
+	return us.tokenMgr.SaveToken(ctx, userId, td)
 }
 
-func (us *UserService) SaveUser(googleLoginResponse *GoogleLoginResponse) error {
+func (us *UserService) SaveUser(ctx context.Context, googleLoginResponse *GoogleLoginResponse) error {
 	role := Admin
 	if googleLoginResponse.Email != os.Getenv("ADMIN_EMAIL") {
 		role = Reader
@@ -166,22 +167,22 @@ func (us *UserService) SaveUser(googleLoginResponse *GoogleLoginResponse) error 
 		CreatedAt:  time.Now(),
 		UpdatedAt:  time.Now(),
 	}
-	exists, err := us.repo.IsExists(bson.M{"email": user.Email})
+	exists, err := us.repo.IsExists(ctx, bson.M{"email": user.Email})
 	if err != nil {
 		return err
 	}
 	if exists {
 		return nil
 	}
-	_, err = us.repo.CreateUser(user)
+	_, err = us.repo.CreateUser(ctx, user)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (us *UserService) GetUsers() ([]*User, error) {
-	users, err := us.repo.GetUsers(bson.M{
+func (us *UserService) GetUsers(ctx context.Context) ([]*User, error) {
+	users, err := us.repo.GetUsers(ctx, bson.M{
 		"role": bson.M{
 			"$ne": Admin,
 		},
@@ -200,38 +201,38 @@ func (us *UserService) GetUsers() ([]*User, error) {
 	return users, nil
 }
 
-func (us *UserService) Logout(accessUuid string) error {
-	return us.tokenMgr.DeleteToken(bson.M{"access_uuid": accessUuid})
+func (us *UserService) Logout(ctx context.Context,accessUuid string) error {
+	return us.tokenMgr.DeleteToken(ctx, bson.M{"access_uuid": accessUuid})
 }
 
-func (us *UserService) Profile(userId string) (*User, error) {
-	return us.repo.GetUser(bson.M{"_id": userId})
+func (us *UserService) Profile(ctx context.Context,userId string) (*User, error) {
+	return us.repo.GetUser(ctx, bson.M{"_id": userId})
 }
 
-func (us *UserService) UpdateAboutMe(userId, aboutMe, profilePicture string) error {
-	exists, err := us.repo.IsExists(bson.M{"_id": "profile_picture" + userId})
+func (us *UserService) UpdateAboutMe(ctx context.Context,userId, aboutMe, profilePicture string) error {
+	exists, err := us.repo.IsExists(ctx, bson.M{"_id": "profile_picture" + userId})
 	if err != nil {
 		return err
 	}
 	if !exists {
-		_, err := us.repo.CreateAboutMe(bson.M{"_id": "profile_picture" + userId, "about_me": aboutMe, "profile_picture": profilePicture, "updated_at": time.Now()})
+		_, err := us.repo.CreateAboutMe(ctx, bson.M{"_id": "profile_picture" + userId, "about_me": aboutMe, "profile_picture": profilePicture, "updated_at": time.Now()})
 		if err != nil {
 			return err
 		}
 	}
-	_, err = us.repo.UpdateUser(bson.M{"_id": "profile_picture" + userId}, bson.M{"$set": bson.M{"about_me": aboutMe, "profile_picture": profilePicture, "updated_at": time.Now()}})
+	_, err = us.repo.UpdateUser(ctx, bson.M{"_id": "profile_picture" + userId}, bson.M{"$set": bson.M{"about_me": aboutMe, "profile_picture": profilePicture, "updated_at": time.Now()}})
 	return err
 }
 
-func (us *UserService) GetAboutMe() (*AboutMe, error) {
-	admin, err := us.repo.GetUser(bson.M{"role": Admin})
+func (us *UserService) GetAboutMe(ctx context.Context) (*AboutMe, error) {
+	admin, err := us.repo.GetUser(ctx, bson.M{"role": Admin})
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
 		}
 		return nil, err
 	}
-	aboutMe, err := us.repo.GetAboutMe(bson.M{"_id": "profile_picture" + admin.ID})
+	aboutMe, err := us.repo.GetAboutMe(ctx, bson.M{"_id": "profile_picture" + admin.ID})
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
@@ -241,17 +242,17 @@ func (us *UserService) GetAboutMe() (*AboutMe, error) {
 	return aboutMe, nil
 }
 
-func (us *UserService) SubscribeToMailingList(id string) error {
-	user, err := us.Profile(id)
+func (us *UserService) SubscribeToMailingList(ctx context.Context,id string) error {
+	user, err := us.Profile(ctx, id)
 	if err != nil {
 		return err
 	}
-	mailingList, err := us.GetMailingList()
+	mailingList, err := us.GetMailingList(ctx)
 	if err != nil {
 		return err
 	}
 	if mailingList == nil {
-		_, err := us.repo.CreateMailingList(bson.M{"name": "mailing_list", "subscribers": []Subscriber{
+		_, err := us.repo.CreateMailingList(ctx, bson.M{"name": "mailing_list", "subscribers": []Subscriber{
 			{
 				Email:     user.Email,
 				Name:      user.Name,
@@ -268,12 +269,12 @@ func (us *UserService) SubscribeToMailingList(id string) error {
 			return errors.New("user is already subscribed to mailing list")
 		}
 	}
-	_, err = us.repo.UpdateMailingList(bson.M{"name": "mailing_list"}, bson.M{"$push": bson.M{"subscribers": bson.M{"email": user.Email, "name": user.Name, "created_at": time.Now()}}})
+	_, err = us.repo.UpdateMailingList(ctx, bson.M{"name": "mailing_list"}, bson.M{"$push": bson.M{"subscribers": bson.M{"email": user.Email, "name": user.Name, "created_at": time.Now()}}})
 	return err
 }
 
-func (us *UserService) GetMailingList() (*MailingList, error) {
-	mailingList, err := us.repo.GetMailingList(bson.M{"name": "mailing_list"})
+func (us *UserService) GetMailingList(ctx context.Context) (*MailingList, error) {
+	mailingList, err := us.repo.GetMailingList(ctx, bson.M{"name": "mailing_list"})
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
@@ -283,12 +284,12 @@ func (us *UserService) GetMailingList() (*MailingList, error) {
 	return mailingList, nil
 }
 
-func (us *UserService) UnSubscribeFromMailingList(id string) error {
-	user, err := us.Profile(id)
+func (us *UserService) UnSubscribeFromMailingList(ctx context.Context,id string) error {
+	user, err := us.Profile(ctx, id)
 	if err != nil {
 		return err
 	}
-	mailingList, err := us.GetMailingList()
+	mailingList, err := us.GetMailingList(ctx)
 	if err != nil {
 		return err
 	}
@@ -306,6 +307,6 @@ func (us *UserService) UnSubscribeFromMailingList(id string) error {
 	if !removeSubscriber {
 		return errors.New("user is not subscribed to mailing list")
 	}
-	_, err = us.repo.UpdateMailingList(bson.M{"name": "mailing_list"}, bson.M{"$pull": bson.M{"subscribers": bson.M{"email": user.Email}}})
+	_, err = us.repo.UpdateMailingList(ctx, bson.M{"name": "mailing_list"}, bson.M{"$pull": bson.M{"subscribers": bson.M{"email": user.Email}}})
 	return err
 }

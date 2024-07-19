@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strings"
@@ -18,11 +19,11 @@ type Middleware struct {
 }
 
 type MiddlewareTokenManager interface {
-	FindToken(filter interface{}, opts ...*options.FindOneOptions) (*AccessDetails, error)
+	FindToken(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (*AccessDetails, error)
 	ExtractTokenMetadata(token *jwt.Token) (*AccessDetails, error)
 }
 type MiddlewareUserRepo interface {
-	GetUser(filter interface{}, opts ...*options.FindOneOptions) (*User, error)
+	GetUser(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (*User, error)
 }
 
 func NewMiddleware(accessTokenSecret string, userRepo MiddlewareUserRepo, tokenManager MiddlewareTokenManager) *Middleware {
@@ -59,7 +60,7 @@ func (m *Middleware) Authentication() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		_, err = m.tokenManager.FindToken(bson.M{"access_uuid": td.AccessUuid})
+		_, err = m.tokenManager.FindToken(c, bson.M{"access_uuid": td.AccessUuid})
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "unauthorized: " + err.Error()}})
 			c.Abort()
@@ -83,7 +84,7 @@ func extractToken(r *http.Request) string {
 func (m *Middleware) Authorization(roles []Role) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId := c.MustGet("user_id").(string)
-		user, err := m.userRepo.GetUser(bson.M{
+		user, err := m.userRepo.GetUser(c, bson.M{
 			"_id": userId,
 		})
 		if err != nil {
@@ -98,7 +99,7 @@ func (m *Middleware) Authorization(roles []Role) gin.HandlerFunc {
 			}
 		}
 		if !allowed {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": gin.H{"message": err.Error() + ": you are not authorized to acess this resource"}})
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": gin.H{"message": "you are not authorized to acess this resource"}})
 			return
 		}
 		c.Next()
