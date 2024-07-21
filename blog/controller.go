@@ -12,21 +12,21 @@ type BlogController struct {
 }
 
 type BlogServices interface {
-	CreateBlogPost(ctx context.Context,blogPost *BlogPost) error
-	GetBlogPosts(ctx context.Context,) ([]*BlogPost, error)
-	GetBlogPostByID(ctx context.Context,idStr string) (*BlogPost, error)
-	GetBlogPostBySlug(ctx context.Context,slug string) (*BlogPost, error)
-	UpdateBlogPost(ctx context.Context,blogPost *BlogPost) error
-	DeleteBlogPost(ctx context.Context,idStr string) error
-	SearchBlogPosts(ctx context.Context,query string) ([]*BlogPost, error)
+	CreateBlogPost(ctx context.Context, blogPost *BlogPost) error
+	GetBlogPosts(ctx context.Context) ([]*BlogPost, error)
+	GetBlogPostByID(ctx context.Context, idStr string) (*BlogPost, error)
+	GetBlogPostBySlug(ctx context.Context, slug string) (*BlogPost, error)
+	UpdateBlogPost(ctx context.Context, blogPost *BlogPost) error
+	DeleteBlogPost(ctx context.Context, idStr string) error
+	SearchBlogPosts(ctx context.Context, query string) ([]*BlogPost, error)
 
-	PostComment(ctx context.Context,comment *Comment) error
-	GetComments(ctx context.Context,postIdStr string) ([]*Comment, error)
-	GetComment(ctx context.Context,idStr string) (*Comment, error)
-	UpdateComment(ctx context.Context,comment *Comment) error
-	DeleteComment(ctx context.Context,idStr string) error
-	LikeOrUnlikePost(ctx context.Context,postIdStr, userId string, opt PostOption) error
-	LikeOrUnlikeComment(ctx context.Context,commentIdStr, userId string, opt CommnentOption) error
+	PostComment(ctx context.Context, comment *Comment) error
+	GetComments(ctx context.Context, postIdStr string) ([]*Comment, error)
+	GetComment(ctx context.Context, idStr string) (*Comment, error)
+	UpdateComment(ctx context.Context, comment *Comment) error
+	DeleteComment(ctx context.Context, idStr string) error
+	LikeOrUnlikePost(ctx context.Context, postIdStr, userId string, opt PostOption) error
+	LikeOrUnlikeComment(ctx context.Context, commentIdStr, userId string, opt CommnentOption) error
 }
 
 func NewBlogController(service BlogServices) *BlogController {
@@ -126,7 +126,7 @@ func (controller *BlogController) UpdateBlogPost(c *gin.Context) {
 
 func (controller *BlogController) DeleteBlogPost(c *gin.Context) {
 	id := c.Param("id")
-	if err := controller.service.DeleteBlogPost(c,id); err != nil {
+	if err := controller.service.DeleteBlogPost(c, id); err != nil {
 		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}

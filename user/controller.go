@@ -20,15 +20,15 @@ func NewUserController(service UserServices, uploader Uploader) *UserController 
 type UserServices interface {
 	Login(ctx *gin.Context) (string, error)
 	Callback(ctx *gin.Context) (*GoogleLoginResponse, error)
-	SaveAccessToken(ctx context.Context,userId string, td *TokenDetails) error
+	SaveAccessToken(ctx context.Context, userId string, td *TokenDetails) error
 	GenerateAccessToken(userId string) (*TokenDetails, error)
-	SaveUser(ctx context.Context,googleLoginResponse *GoogleLoginResponse) error
-	Logout(ctx context.Context,accessUuid string) error
-	Profile(ctx context.Context,userId string) (*User, error)
-	UpdateAboutMe(ctx context.Context,userId, aboutMe, profilePicture string) error
+	SaveUser(ctx context.Context, googleLoginResponse *GoogleLoginResponse) error
+	Logout(ctx context.Context, accessUuid string) error
+	Profile(ctx context.Context, userId string) (*User, error)
+	UpdateAboutMe(ctx context.Context, userId, aboutMe, profilePicture string) error
 	GetAboutMe(ctx context.Context) (*AboutMe, error)
-	SubscribeToMailingList(ctx context.Context,id string) error
-	UnSubscribeFromMailingList(ctx context.Context,id string) error
+	SubscribeToMailingList(ctx context.Context, id string) error
+	UnSubscribeFromMailingList(ctx context.Context, id string) error
 	GetMailingList(ctx context.Context) (*MailingList, error)
 	GetUsers(ctx context.Context) ([]*User, error)
 }
@@ -97,7 +97,7 @@ func (uc *UserController) Logout(c *gin.Context) {
 func (uc *UserController) Profile(c *gin.Context) {
 	userid, exists := c.Get("user_id")
 	if !exists {
-		c.JSON(500, gin.H{"error": gin.H{"message": "user not found"}})	
+		c.JSON(500, gin.H{"error": gin.H{"message": "user not found"}})
 		return
 	}
 
@@ -110,11 +110,11 @@ func (uc *UserController) Profile(c *gin.Context) {
 }
 
 func (uc *UserController) UpdateAboutMe(c *gin.Context) {
-	userid,exists := c.Get("user_id")
+	userid, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(500, gin.H{"error": gin.H{"message": "user not found"}})
 		return
-	}	
+	}
 	err := c.Request.ParseMultipartForm(32 << 20)
 	if err != nil {
 		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
@@ -136,7 +136,7 @@ func (uc *UserController) UpdateAboutMe(c *gin.Context) {
 	} else {
 		req.ProfilePicture = ""
 	}
-	if err := uc.service.UpdateAboutMe(c,userid.(string) , req.AboutMe, req.ProfilePicture); err != nil {
+	if err := uc.service.UpdateAboutMe(c, userid.(string), req.AboutMe, req.ProfilePicture); err != nil {
 		c.JSON(500, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}

@@ -17,24 +17,24 @@ type BlogService struct {
 }
 
 type BlogRepository interface {
-	CreateBlogPost(ctx context.Context,blogPost *BlogPost) (*mongo.InsertOneResult, error)
-	GetBlogPosts(ctx context.Context,filter interface{}, opts ...*options.FindOptions) ([]*BlogPost, error)
-	GetBlogPost(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (*BlogPost, error)
-	UpdateBlogPost(ctx context.Context,filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
-	DeleteBlogPost(ctx context.Context,filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error)
-	SearchBlogPosts(ctx context.Context,query string) ([]*BlogPost, error)
-	PostComment(ctx context.Context,comment *Comment) (*mongo.InsertOneResult, error)
-	GetComments(ctx context.Context,filter interface{}, opts ...*options.FindOptions) ([]*Comment, error)
-	GetComment(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (*Comment, error)
-	UpdateComment(ctx context.Context,filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
-	DeleteComment(ctx context.Context,filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error)
+	CreateBlogPost(ctx context.Context, blogPost *BlogPost) (*mongo.InsertOneResult, error)
+	GetBlogPosts(ctx context.Context, filter interface{}, opts ...*options.FindOptions) ([]*BlogPost, error)
+	GetBlogPost(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) (*BlogPost, error)
+	UpdateBlogPost(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
+	DeleteBlogPost(ctx context.Context, filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error)
+	SearchBlogPosts(ctx context.Context, query string) ([]*BlogPost, error)
+	PostComment(ctx context.Context, comment *Comment) (*mongo.InsertOneResult, error)
+	GetComments(ctx context.Context, filter interface{}, opts ...*options.FindOptions) ([]*Comment, error)
+	GetComment(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) (*Comment, error)
+	UpdateComment(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
+	DeleteComment(ctx context.Context, filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error)
 }
 
 func NewBlogService(repo BlogRepository) *BlogService {
 	return &BlogService{repo}
 }
 
-func (service *BlogService) CreateBlogPost(ctx context.Context,blogPost *BlogPost) error {
+func (service *BlogService) CreateBlogPost(ctx context.Context, blogPost *BlogPost) error {
 	blogPost.Slug = slug.Make(blogPost.Title)
 	p, err := service.repo.GetBlogPost(ctx, bson.M{"slug": blogPost.Slug})
 	if err != nil {
@@ -52,7 +52,7 @@ func (service *BlogService) CreateBlogPost(ctx context.Context,blogPost *BlogPos
 	return err
 }
 
-func (service *BlogService) GetBlogPosts(ctx context.Context,) ([]*BlogPost, error) {
+func (service *BlogService) GetBlogPosts(ctx context.Context) ([]*BlogPost, error) {
 	posts, err := service.repo.GetBlogPosts(ctx, bson.M{})
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func (service *BlogService) GetBlogPosts(ctx context.Context,) ([]*BlogPost, err
 	return posts, nil
 }
 
-func (service *BlogService) GetBlogPostByID(ctx context.Context,idStr string) (*BlogPost, error) {
+func (service *BlogService) GetBlogPostByID(ctx context.Context, idStr string) (*BlogPost, error) {
 	id, err := primitive.ObjectIDFromHex(idStr)
 	if err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func (service *BlogService) GetBlogPostByID(ctx context.Context,idStr string) (*
 	return post, nil
 }
 
-func (service *BlogService) GetBlogPostBySlug(ctx context.Context,slug string) (*BlogPost, error) {
+func (service *BlogService) GetBlogPostBySlug(ctx context.Context, slug string) (*BlogPost, error) {
 	post, err := service.repo.GetBlogPost(ctx, bson.M{"slug": slug})
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (service *BlogService) GetBlogPostBySlug(ctx context.Context,slug string) (
 	return post, nil
 }
 
-func (service *BlogService) UpdateBlogPost(ctx context.Context,blogPost *BlogPost) error {
+func (service *BlogService) UpdateBlogPost(ctx context.Context, blogPost *BlogPost) error {
 	oldPost, err := service.repo.GetBlogPost(ctx, bson.M{"_id": blogPost.Id})
 	if err != nil {
 		return err
@@ -93,7 +93,7 @@ func (service *BlogService) UpdateBlogPost(ctx context.Context,blogPost *BlogPos
 	return err
 }
 
-func (service *BlogService) DeleteBlogPost(ctx context.Context,idStr string) error {
+func (service *BlogService) DeleteBlogPost(ctx context.Context, idStr string) error {
 	id, err := primitive.ObjectIDFromHex(idStr)
 	if err != nil {
 		return err
@@ -102,18 +102,18 @@ func (service *BlogService) DeleteBlogPost(ctx context.Context,idStr string) err
 	return err
 }
 
-func (service *BlogService) SearchBlogPosts(ctx context.Context,query string) ([]*BlogPost, error) {
+func (service *BlogService) SearchBlogPosts(ctx context.Context, query string) ([]*BlogPost, error) {
 	return service.repo.SearchBlogPosts(ctx, query)
 }
 
-func (service *BlogService) PostComment(ctx context.Context,comment *Comment) error {
+func (service *BlogService) PostComment(ctx context.Context, comment *Comment) error {
 	comment.CreatedAt = time.Now()
 	comment.UpdatedAt = time.Now()
 	_, err := service.repo.PostComment(ctx, comment)
 	return err
 }
 
-func (service *BlogService) GetComments(ctx context.Context,postIdStr string) ([]*Comment, error) {
+func (service *BlogService) GetComments(ctx context.Context, postIdStr string) ([]*Comment, error) {
 	postId, err := primitive.ObjectIDFromHex(postIdStr)
 	if err != nil {
 		return nil, err
@@ -125,7 +125,7 @@ func (service *BlogService) GetComments(ctx context.Context,postIdStr string) ([
 	return comments, nil
 }
 
-func (service *BlogService) GetComment(ctx context.Context,idStr string) (*Comment, error) {
+func (service *BlogService) GetComment(ctx context.Context, idStr string) (*Comment, error) {
 	id, err := primitive.ObjectIDFromHex(idStr)
 	if err != nil {
 		return nil, err
@@ -137,7 +137,7 @@ func (service *BlogService) GetComment(ctx context.Context,idStr string) (*Comme
 	return comment, nil
 }
 
-func (service *BlogService) UpdateComment(ctx context.Context,comment *Comment) error {
+func (service *BlogService) UpdateComment(ctx context.Context, comment *Comment) error {
 	old, err := service.repo.GetComment(ctx, bson.M{"_id": comment.Id, "author_id": comment.AuthorId})
 	if err != nil {
 		return err
@@ -152,7 +152,7 @@ func (service *BlogService) UpdateComment(ctx context.Context,comment *Comment) 
 	return err
 }
 
-func (service *BlogService) DeleteComment(ctx context.Context,idStr string) error {
+func (service *BlogService) DeleteComment(ctx context.Context, idStr string) error {
 	id, err := primitive.ObjectIDFromHex(idStr)
 	if err != nil {
 		return err
@@ -161,7 +161,7 @@ func (service *BlogService) DeleteComment(ctx context.Context,idStr string) erro
 	return err
 }
 
-func (service *BlogService) LikeOrUnlikePost(ctx context.Context,postIdStr, userId string, opt PostOption) error {
+func (service *BlogService) LikeOrUnlikePost(ctx context.Context, postIdStr, userId string, opt PostOption) error {
 	postId, err := primitive.ObjectIDFromHex(postIdStr)
 	if err != nil {
 		return err
@@ -174,7 +174,7 @@ func (service *BlogService) LikeOrUnlikePost(ctx context.Context,postIdStr, user
 	return nil
 }
 
-func (service *BlogService) likePost(ctx context.Context,postId primitive.ObjectID, userId string) error {
+func (service *BlogService) likePost(ctx context.Context, postId primitive.ObjectID, userId string) error {
 	post, err := service.repo.GetBlogPost(ctx, bson.M{"_id": postId})
 	if err != nil {
 		return err
@@ -189,7 +189,7 @@ func (service *BlogService) likePost(ctx context.Context,postId primitive.Object
 	return err
 }
 
-func (service *BlogService) unlikePost(ctx context.Context,postId primitive.ObjectID, userId string) error {
+func (service *BlogService) unlikePost(ctx context.Context, postId primitive.ObjectID, userId string) error {
 	post, err := service.repo.GetBlogPost(ctx, bson.M{"_id": postId})
 	if err != nil {
 		return err
@@ -221,7 +221,7 @@ type CommnentOption string
 const LikeComment CommnentOption = "like"
 const UnlikeComment CommnentOption = "unlike"
 
-func (service *BlogService) LikeOrUnlikeComment(ctx context.Context,commentIdStr, userId string, opt CommnentOption) error {
+func (service *BlogService) LikeOrUnlikeComment(ctx context.Context, commentIdStr, userId string, opt CommnentOption) error {
 	postId, err := primitive.ObjectIDFromHex(commentIdStr)
 	if err != nil {
 		return err
@@ -234,7 +234,7 @@ func (service *BlogService) LikeOrUnlikeComment(ctx context.Context,commentIdStr
 	return nil
 }
 
-func (service *BlogService) likeComment(ctx context.Context,commentId primitive.ObjectID, userId string) error {
+func (service *BlogService) likeComment(ctx context.Context, commentId primitive.ObjectID, userId string) error {
 	comment, err := service.repo.GetComment(ctx, bson.M{"_id": commentId})
 	if err != nil {
 		return err
@@ -249,7 +249,7 @@ func (service *BlogService) likeComment(ctx context.Context,commentId primitive.
 	return err
 }
 
-func (service *BlogService) unlikeComment(ctx context.Context,commentId primitive.ObjectID, userId string) error {
+func (service *BlogService) unlikeComment(ctx context.Context, commentId primitive.ObjectID, userId string) error {
 	comment, err := service.repo.GetComment(ctx, bson.M{"_id": commentId})
 	if err != nil {
 		return err

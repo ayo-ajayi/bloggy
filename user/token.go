@@ -42,7 +42,7 @@ func NewTokenManager(accessTokenSecret string, accessTokenValidaityInHours int64
 	return tm
 }
 
-func InitTokenExpiryIndex(ctx context.Context,collection *mongo.Collection) error {
+func InitTokenExpiryIndex(ctx context.Context, collection *mongo.Collection) error {
 	indexModel := mongo.IndexModel{
 		Keys: bson.M{
 			"expires_at": 1}, Options: options.Index().SetExpireAfterSeconds(0),
@@ -80,7 +80,7 @@ func createToken(userId string, uuid string, expires int64, secret string) (stri
 	return at.SignedString([]byte(secret))
 }
 
-func (tm *TokenManager) SaveToken(ctx context.Context,userId string, td *TokenDetails) error {
+func (tm *TokenManager) SaveToken(ctx context.Context, userId string, td *TokenDetails) error {
 	_, err := tm.collection.InsertOne(ctx, &AccessDetails{
 		AccessUuid: td.AcessUuid,
 		UserId:     userId,
@@ -89,11 +89,11 @@ func (tm *TokenManager) SaveToken(ctx context.Context,userId string, td *TokenDe
 	return err
 }
 
-func (tm *TokenManager) DeleteToken(ctx context.Context,filter interface{}, opts ...*options.DeleteOptions) error {
+func (tm *TokenManager) DeleteToken(ctx context.Context, filter interface{}, opts ...*options.DeleteOptions) error {
 	_, err := tm.collection.DeleteOne(ctx, filter, opts...)
 	return err
 }
-func (tm *TokenManager) IsExists(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (bool, error) {
+func (tm *TokenManager) IsExists(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) (bool, error) {
 	err := tm.collection.FindOne(ctx, filter, opts...).Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -104,7 +104,7 @@ func (tm *TokenManager) IsExists(ctx context.Context,filter interface{}, opts ..
 	return true, nil
 }
 
-func (tm *TokenManager) FindToken(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (*AccessDetails, error) {
+func (tm *TokenManager) FindToken(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) (*AccessDetails, error) {
 	var accessDetails AccessDetails
 	err := tm.collection.FindOne(ctx, filter, opts...).Decode(&accessDetails)
 	if err != nil {

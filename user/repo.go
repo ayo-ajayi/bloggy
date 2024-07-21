@@ -14,7 +14,7 @@ func NewUserRepo(collection *mongo.Collection) *UserRepo {
 	return &UserRepo{collection}
 }
 
-func (repo *UserRepo) IsExists(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (bool, error) {
+func (repo *UserRepo) IsExists(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) (bool, error) {
 	err := repo.collection.FindOne(ctx, filter, opts...).Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -25,11 +25,11 @@ func (repo *UserRepo) IsExists(ctx context.Context,filter interface{}, opts ...*
 	return true, nil
 }
 
-func (repo *UserRepo) CreateUser(ctx context.Context,user *User) (*mongo.InsertOneResult, error) {
+func (repo *UserRepo) CreateUser(ctx context.Context, user *User) (*mongo.InsertOneResult, error) {
 	return repo.collection.InsertOne(ctx, user)
 }
 
-func (repo *UserRepo) GetUser(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (*User, error) {
+func (repo *UserRepo) GetUser(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) (*User, error) {
 	var user User
 	err := repo.collection.FindOne(ctx, filter, opts...).Decode(&user)
 	if err != nil {
@@ -38,17 +38,17 @@ func (repo *UserRepo) GetUser(ctx context.Context,filter interface{}, opts ...*o
 	return &user, nil
 }
 
-func (repo *UserRepo) UpdateUser(ctx context.Context,filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
+func (repo *UserRepo) UpdateUser(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
 	return repo.collection.UpdateOne(ctx, filter, update, opts...)
 }
 
-func (repo *UserRepo) CreateAboutMe(ctx context.Context,filter interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
+func (repo *UserRepo) CreateAboutMe(ctx context.Context, filter interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
 	return repo.collection.InsertOne(ctx, filter, opts...)
 }
-func (repo *UserRepo) UpdateAboutMe(ctx context.Context,filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
+func (repo *UserRepo) UpdateAboutMe(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
 	return repo.UpdateUser(ctx, filter, update, opts...)
 }
-func (repo *UserRepo) GetAboutMe(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (*AboutMe, error) {
+func (repo *UserRepo) GetAboutMe(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) (*AboutMe, error) {
 	var aboutMe AboutMe
 	err := repo.collection.FindOne(ctx, filter, opts...).Decode(&aboutMe)
 	if err != nil {
@@ -57,11 +57,11 @@ func (repo *UserRepo) GetAboutMe(ctx context.Context,filter interface{}, opts ..
 	return &aboutMe, nil
 }
 
-func (repo *UserRepo) CreateMailingList(ctx context.Context,filter interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
+func (repo *UserRepo) CreateMailingList(ctx context.Context, filter interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
 	return repo.collection.InsertOne(ctx, filter, opts...)
 }
 
-func (repo *UserRepo) GetMailingList(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (*MailingList, error) {
+func (repo *UserRepo) GetMailingList(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) (*MailingList, error) {
 	var mailingList MailingList
 	err := repo.collection.FindOne(ctx, filter, opts...).Decode(&mailingList)
 	if err != nil {
@@ -70,11 +70,11 @@ func (repo *UserRepo) GetMailingList(ctx context.Context,filter interface{}, opt
 	return &mailingList, nil
 }
 
-func (repo *UserRepo) UpdateMailingList(ctx context.Context,filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
+func (repo *UserRepo) UpdateMailingList(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
 	return repo.UpdateUser(ctx, filter, update, opts...)
 }
 
-func (repo *UserRepo) GetUsers(ctx context.Context,filter interface{}, opts ...*options.FindOptions) ([]*User, error) {
+func (repo *UserRepo) GetUsers(ctx context.Context, filter interface{}, opts ...*options.FindOptions) ([]*User, error) {
 	var users []*User
 	cursor, err := repo.collection.Find(ctx, filter, opts...)
 	if err != nil {

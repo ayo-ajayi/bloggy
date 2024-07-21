@@ -27,26 +27,26 @@ type UserService struct {
 }
 
 type TokenMgr interface {
-	SaveToken(ctx context.Context,userId string, td *TokenDetails) error
+	SaveToken(ctx context.Context, userId string, td *TokenDetails) error
 	GenerateToken(userId string) (*TokenDetails, error)
-	FindToken(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (*AccessDetails, error)
-	IsExists(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (bool, error)
-	DeleteToken(ctx context.Context,filter interface{}, opts ...*options.DeleteOptions) error
+	FindToken(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) (*AccessDetails, error)
+	IsExists(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) (bool, error)
+	DeleteToken(ctx context.Context, filter interface{}, opts ...*options.DeleteOptions) error
 }
 
 type UserRepository interface {
-	CreateUser(ctx context.Context,user *User) (*mongo.InsertOneResult, error)
-	GetUser(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (*User, error)
-	GetUsers(ctx context.Context,filter interface{}, opts ...*options.FindOptions) ([]*User, error)
-	UpdateUser(ctx context.Context,filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
-	IsExists(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (bool, error)
-	CreateAboutMe(ctx context.Context,filter interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error)
-	GetAboutMe(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (*AboutMe, error)
-	UpdateAboutMe(ctx context.Context,filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
+	CreateUser(ctx context.Context, user *User) (*mongo.InsertOneResult, error)
+	GetUser(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) (*User, error)
+	GetUsers(ctx context.Context, filter interface{}, opts ...*options.FindOptions) ([]*User, error)
+	UpdateUser(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
+	IsExists(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) (bool, error)
+	CreateAboutMe(ctx context.Context, filter interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error)
+	GetAboutMe(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) (*AboutMe, error)
+	UpdateAboutMe(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
 
-	CreateMailingList(ctx context.Context,filter interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error)
-	GetMailingList(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (*MailingList, error)
-	UpdateMailingList(ctx context.Context,filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
+	CreateMailingList(ctx context.Context, filter interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error)
+	GetMailingList(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) (*MailingList, error)
+	UpdateMailingList(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
 }
 
 func NewUserService(repo UserRepository, tokenMgr TokenMgr) *UserService {
@@ -139,7 +139,7 @@ func (us *UserService) GenerateAccessToken(userId string) (*TokenDetails, error)
 	return td, nil
 }
 
-func (us *UserService) SaveAccessToken(ctx context.Context,userId string, td *TokenDetails) error {
+func (us *UserService) SaveAccessToken(ctx context.Context, userId string, td *TokenDetails) error {
 	exists, err := us.tokenMgr.IsExists(ctx, bson.M{"user_id": userId})
 	if err != nil {
 		return err
@@ -201,15 +201,15 @@ func (us *UserService) GetUsers(ctx context.Context) ([]*User, error) {
 	return users, nil
 }
 
-func (us *UserService) Logout(ctx context.Context,accessUuid string) error {
+func (us *UserService) Logout(ctx context.Context, accessUuid string) error {
 	return us.tokenMgr.DeleteToken(ctx, bson.M{"access_uuid": accessUuid})
 }
 
-func (us *UserService) Profile(ctx context.Context,userId string) (*User, error) {
+func (us *UserService) Profile(ctx context.Context, userId string) (*User, error) {
 	return us.repo.GetUser(ctx, bson.M{"_id": userId})
 }
 
-func (us *UserService) UpdateAboutMe(ctx context.Context,userId, aboutMe, profilePicture string) error {
+func (us *UserService) UpdateAboutMe(ctx context.Context, userId, aboutMe, profilePicture string) error {
 	exists, err := us.repo.IsExists(ctx, bson.M{"_id": "profile_picture" + userId})
 	if err != nil {
 		return err
@@ -242,7 +242,7 @@ func (us *UserService) GetAboutMe(ctx context.Context) (*AboutMe, error) {
 	return aboutMe, nil
 }
 
-func (us *UserService) SubscribeToMailingList(ctx context.Context,id string) error {
+func (us *UserService) SubscribeToMailingList(ctx context.Context, id string) error {
 	user, err := us.Profile(ctx, id)
 	if err != nil {
 		return err
@@ -284,7 +284,7 @@ func (us *UserService) GetMailingList(ctx context.Context) (*MailingList, error)
 	return mailingList, nil
 }
 
-func (us *UserService) UnSubscribeFromMailingList(ctx context.Context,id string) error {
+func (us *UserService) UnSubscribeFromMailingList(ctx context.Context, id string) error {
 	user, err := us.Profile(ctx, id)
 	if err != nil {
 		return err

@@ -41,7 +41,10 @@ func BlogRouter() *gin.Engine {
 		log.Fatal(err.Error())
 	}
 	r := gin.Default()
-	r.Use(middleware.JsonMiddleware(), cors.New(cors.Options{
+	r.Use(func(c *gin.Context) {
+		c.Header("Content-Type", "application/json")
+		c.Next()
+	}, cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},

@@ -19,11 +19,11 @@ type Middleware struct {
 }
 
 type MiddlewareTokenManager interface {
-	FindToken(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (*AccessDetails, error)
+	FindToken(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) (*AccessDetails, error)
 	ExtractTokenMetadata(token *jwt.Token) (*AccessDetails, error)
 }
 type MiddlewareUserRepo interface {
-	GetUser(ctx context.Context,filter interface{}, opts ...*options.FindOneOptions) (*User, error)
+	GetUser(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) (*User, error)
 }
 
 func NewMiddleware(accessTokenSecret string, userRepo MiddlewareUserRepo, tokenManager MiddlewareTokenManager) *Middleware {
@@ -102,13 +102,6 @@ func (m *Middleware) Authorization(roles []Role) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": gin.H{"message": "you are not authorized to acess this resource"}})
 			return
 		}
-		c.Next()
-	}
-}
-
-func (m *Middleware) JsonMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Header("Content-Type", "application/json")
 		c.Next()
 	}
 }

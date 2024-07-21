@@ -7,7 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func MongoClient(ctx context.Context,connectionUri string) (*mongo.Client, error) {
+func MongoClient(ctx context.Context, connectionUri string) (*mongo.Client, error) {
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(connectionUri))
 	if err != nil {
 		return nil, err
